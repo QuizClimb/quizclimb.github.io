@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Man Utd Quiz Climb — 20 Questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#1a0708; --bg1:#3a0d10; --card:#33100f; --card2:#43161a;
+    --ink:#fff0ef; --mut:#e0a9a6; --line:#6e2226;
+    --l1:#36c98a; --l2:#f6b73c; --l3:#ff5d6e;
+    --gold:#ffd75e; --right:#36c98a; --wrong:#ff5d6e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(120% 90% at 82% -10%, rgba(220,30,40,.34), transparent 55%),
+      radial-gradient(100% 80% at 0% 110%, rgba(255,215,94,.14), transparent 55%),
+      linear-gradient(160deg,var(--bg0),var(--bg1));
+    display:flex;align-items:center;justify-content:center;min-height:100%;
+    overflow:hidden;user-select:none;touch-action:manipulation;}
+  #app{position:relative;width:100%;max-width:560px;height:100dvh;max-height:760px;
+    display:flex;flex-direction:column;padding:16px;gap:12px;overflow:hidden;}
+  .display{font-family:'Baloo 2',cursive;}
+
+  /* ---------- HUD ---------- */
+  #hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .lvlpill{font-family:'Baloo 2';font-weight:700;font-size:14px;letter-spacing:.5px;
+    padding:6px 14px;border-radius:30px;color:#10142e;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+  .timer{margin-left:auto;font-family:'Baloo 2';font-weight:700;font-size:20px;color:var(--gold);
+    display:flex;align-items:center;gap:6px;}
+  .timer svg{width:17px;height:17px;opacity:.85}
+  .strikes{display:flex;gap:5px;align-items:center;}
+  .strike{width:15px;height:15px;border-radius:50%;border:2px solid var(--line);
+    transition:all .25s;position:relative;}
+  .strike.used{background:var(--wrong);border-color:var(--wrong);box-shadow:0 0 10px rgba(255,93,122,.6);}
+  .progwrap{height:8px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;}
+  .progbar{height:100%;width:0;background:linear-gradient(90deg,var(--l1),var(--gold));
+    border-radius:10px;transition:width .4s cubic-bezier(.4,1.3,.5,1);}
+  .qcount{font-weight:800;color:var(--mut);font-size:13px;letter-spacing:.5px;}
+
+  /* ---------- question ---------- */
+  #qcard{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;min-height:0;}
+  .qbox{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);
+    border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.3);}
+  .qtext{font-family:'Baloo 2';font-weight:700;font-size:clamp(20px,5.4vw,28px);line-height:1.25;}
+  .opts{display:flex;flex-direction:column;gap:11px;}
+  .opt{font-family:'Nunito';font-weight:700;font-size:clamp(16px,4.4vw,19px);color:var(--ink);
+    background:var(--card2);border:2px solid var(--line);border-radius:15px;padding:15px 18px;
+    text-align:left;cursor:pointer;display:flex;align-items:center;gap:13px;
+    transition:transform .08s,background .15s,border-color .15s;}
+  .opt:active{transform:scale(.985);}
+  .opt .key{flex:none;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;font-family:'Baloo 2';font-weight:700;
+    font-size:15px;color:var(--mut);}
+  .opt .txt{flex:1;}
+  .opt .mark{flex:none;width:24px;height:24px;opacity:0;transition:opacity .2s;}
+  .opt.correct{background:rgba(51,201,138,.18);border-color:var(--right);}
+  .opt.correct .key{background:var(--right);color:#08221a;}
+  .opt.correct .mark{opacity:1;}
+  .opt.wrong{background:rgba(255,93,122,.16);border-color:var(--wrong);}
+  .opt.wrong .key{background:var(--wrong);color:#2a0a12;}
+  .opt.wrong .mark{opacity:1;}
+  .opt.dim{opacity:.45;}
+  .opts.locked .opt{cursor:default;}
+
+  /* ---------- toast ---------- */
+  #toast{position:absolute;top:64px;left:50%;transform:translateX(-50%) translateY(-12px);
+    font-family:'Baloo 2';font-weight:800;font-size:17px;padding:9px 20px;border-radius:30px;
+    color:#0e142e;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:8;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- overlays ---------- */
+  .screen{position:absolute;inset:0;background:linear-gradient(160deg,rgba(14,19,48,.97),rgba(27,33,80,.98));
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:26px;gap:16px;z-index:10;overflow-y:auto;}
+  .screen.hidden{display:none;}
+  .big{font-family:'Baloo 2';font-weight:800;font-size:clamp(34px,9vw,56px);line-height:.95;
+    background:linear-gradient(120deg,var(--gold),#ff9e6b);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--mut);font-weight:600;letter-spacing:3px;font-size:13px;text-transform:uppercase;}
+  .lead{font-size:clamp(15px,3.8vw,18px);color:#cdd3ff;font-weight:600;max-width:430px;line-height:1.5;}
+  .rules{text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;
+    padding:16px 18px;max-width:430px;display:flex;flex-direction:column;gap:9px;}
+  .rule{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:#dfe3ff;font-weight:600;line-height:1.35;}
+  .rule .dot{flex:none;width:9px;height:9px;border-radius:50%;margin-top:6px;}
+  button.cta{font-family:'Baloo 2';font-weight:700;font-size:clamp(19px,5vw,23px);color:#10142e;
+    background:linear-gradient(180deg,var(--gold),#f5a93a);border:none;cursor:pointer;
+    padding:14px 44px;border-radius:50px;box-shadow:0 7px 0 #b9801f,0 12px 26px rgba(245,170,60,.4);
+    transition:transform .08s,box-shadow .08s;}
+  button.cta:active{transform:translateY(4px);box-shadow:0 3px 0 #b9801f;}
+  button.cta.blue{background:linear-gradient(180deg,#6fa8ff,#3d7fe8);box-shadow:0 7px 0 #2b5cad,0 12px 26px rgba(60,120,230,.4);color:#fff;}
+  button.cta.blue:active{box-shadow:0 3px 0 #2b5cad;}
+  button.ghost{background:none;border:none;font-family:'Nunito';font-weight:800;color:#8fb6ff;
+    font-size:15px;cursor:pointer;text-decoration:underline;padding:6px;}
+  .statline{font-size:clamp(16px,4vw,20px);color:#cdd3ff;font-weight:700;}
+  .statline b{color:var(--gold);font-size:1.3em;font-family:'Baloo 2';}
+  .timeBig{font-family:'Baloo 2';font-weight:800;font-size:clamp(46px,13vw,76px);color:var(--gold);line-height:1;}
+
+  /* ---------- scoreboard ---------- */
+  .board{width:100%;max-width:440px;background:rgba(255,255,255,.04);border:1px solid var(--line);
+    border-radius:16px;padding:8px;max-height:46vh;overflow-y:auto;}
+  .board h3{font-family:'Baloo 2';font-size:14px;color:var(--gold);letter-spacing:2px;margin:6px 0 8px;}
+  .brow{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:11px;font-weight:700;font-size:15px;}
+  .brow:nth-child(even){background:rgba(255,255,255,.04);}
+  .brow.me{background:rgba(255,215,94,.14);box-shadow:inset 0 0 0 2px rgba(255,215,94,.5);}
+  .brk{width:26px;text-align:center;font-family:'Baloo 2';color:var(--gold);font-weight:800;}
+  .bwho{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bcorr{color:var(--mut);font-size:12.5px;font-weight:700;}
+  .btime{font-family:'Baloo 2';font-weight:800;color:#bfe9d6;}
+  .empty,.loading{color:var(--mut);font-weight:600;padding:16px;font-size:14px;}
+  .namebox{display:flex;gap:9px;width:100%;max-width:380px;}
+  .namebox input{flex:1;font-family:'Nunito';font-weight:700;font-size:17px;color:var(--ink);
+    background:rgba(255,255,255,.06);border:2px solid var(--line);border-radius:14px;padding:12px 15px;
+    text-align:center;outline:none;}
+  .namebox input:focus{border-color:var(--gold);}
+  button.save{font-family:'Baloo 2';font-weight:700;font-size:16px;color:#0e142e;border:none;cursor:pointer;
+    padding:12px 20px;border-radius:14px;background:linear-gradient(180deg,#5fe0a8,#33c98a);
+    box-shadow:0 4px 0 #1f8a5e;white-space:nowrap;}
+  button.save:active{transform:translateY(3px);box-shadow:0 1px 0 #1f8a5e;}
+  .savedok{color:var(--right);font-weight:800;}
+  .hidden{display:none!important;}
+  .timelabel{font-weight:700;color:var(--mut);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:-4px;}
+  .timerow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .timeopt{font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--mut);background:rgba(255,255,255,.05);
+    border:2px solid var(--line);border-radius:30px;padding:8px 16px;cursor:pointer;transition:all .12s;}
+  .timeopt.sel{color:#10142e;background:var(--gold);border-color:var(--gold);}
+  .timeopt:active{transform:scale(.95);}
+  .timer.low{color:var(--wrong);animation:pulse .8s ease-in-out infinite;}
+  .timer.low svg{color:var(--wrong);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  .homelink{display:inline-block;margin-top:6px;font-family:inherit;font-weight:700;font-size:14px;
+    color:var(--mut);text-decoration:none;opacity:.85;transition:opacity .15s;}
+  .homelink:hover{opacity:1;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- live HUD -->
+  <div id="hud">
+    <span class="lvlpill display" id="lvlPill">LEVEL 1</span>
+    <span class="strikes" id="strikes"></span>
+    <span class="timer display"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="timer">0:00</span></span>
+  </div>
+  <div class="progwrap"><div class="progbar" id="progbar"></div></div>
+  <div class="qcount" id="qcount">QUESTION 1 OF 20</div>
+
+  <!-- question -->
+  <div id="qcard">
+    <div class="qbox"><div class="qtext" id="qtext">…</div></div>
+    <div class="opts" id="opts"></div>
+  </div>
+
+  <div id="toast" class="display"></div>
+
+  <!-- START -->
+  <div class="screen" id="startScreen">
+    <div class="sub">Manchester United Trivia</div>
+    <h1 class="big display">Quiz Climb</h1>
+    <p class="lead">20 questions on Manchester United — from Newton Heath to the Theatre of Dreams. The better you do, the harder it gets!</p>
+    <div class="rules">
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
+    </div>
+    <div class="timelabel">Choose your clock</div>
+    <div class="timerow" id="timeRow"></div>
+    <button class="cta" id="startBtn">Start Quiz</button>
+    <a class="homelink" href="index.html">‹ All games</a>
+  </div>
+
+  <!-- KNOCKED OUT -->
+  <div class="screen hidden" id="outScreen">
+    <div class="sub" style="color:var(--wrong)">Knocked Out</div>
+    <h1 class="big display" style="background:linear-gradient(120deg,#ff6b8a,#ff9e6b);-webkit-background-clip:text;background-clip:text;">So close!</h1>
+    <p class="lead">You ran out of lives, but you can jump straight back in.</p>
+    <p class="statline">You answered <b id="outAns">0</b> questions<br>and got <b id="outCorr">0</b> right</p>
+    <button class="cta" id="outRetry">Try Again</button>
+    <button class="ghost" id="outMenu">Back to Menu</button>
+  </div>
+
+  <!-- COMPLETED -->
+  <div class="screen hidden" id="doneScreen">
+    <div class="sub">All 20 Complete!</div>
+    <div class="timeBig display" id="doneTime">0:00</div>
+    <p class="statline" style="margin-top:-6px;">left on the clock</p>
+    <p class="statline"><b id="doneCorr">0</b> correct · <b id="doneAns">20</b>/20 answered</p>
+    <p class="statline">reached <b id="doneLvl">LEVEL 1</b></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="cta" id="doneAgain">Play Again</button>
+      <button class="cta blue" id="doneMenu">Menu</button>
+    </div>
+  </div>
+
+  <!-- TIME'S UP -->
+  <div class="screen hidden" id="timeupScreen">
+    <div class="sub" style="color:var(--gold)">Time's Up!</div>
+    <h1 class="big display">Final whistle!</h1>
+    <p class="lead">Your 2 minutes are up — here's how far you climbed.</p>
+    <p class="statline">You answered <b id="tuAns">0</b> questions<br>and got <b id="tuCorr">0</b> right</p>
+    <button class="cta" id="tuRetry">Try Again</button>
+    <button class="ghost" id="tuMenu">Back to Menu</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============ QUESTION BANK (stable, settled facts) ============
+  const BANK={
+    1:[
+      {q:"Manchester United play which sport?",correct:"Football (soccer)",wrong:["Rugby","Cricket","Basketball"]},
+      {q:"What is the club's home stadium called?",correct:"Old Trafford",wrong:["Anfield","Emirates Stadium","Stamford Bridge"]},
+      {q:"What is Manchester United's famous nickname?",correct:"The Red Devils",wrong:["The Gunners","The Blues","The Toffees"]},
+      {q:"What colour are United's traditional home shirts?",correct:"Red",wrong:["Blue","White","Green"]},
+      {q:"In which English city is the club based?",correct:"Manchester",wrong:["Liverpool","London","Leeds"]},
+      {q:"Old Trafford is nicknamed 'The Theatre of…'?",correct:"Dreams",wrong:["Stars","Kings","Legends"]},
+      {q:"In which league do Manchester United play?",correct:"The Premier League",wrong:["La Liga","Serie A","The Championship"]},
+      {q:"How many players does a football team have on the pitch?",correct:"11",wrong:["9","13","15"]},
+      {q:"United's fierce north-west rivals, a major English club, are…?",correct:"Liverpool",wrong:["Arsenal","Chelsea","Tottenham"]},
+      {q:"Which Scottish manager led United to huge success from 1986 to 2013?",correct:"Sir Alex Ferguson",wrong:["Sir Matt Busby","José Mourinho","Pep Guardiola"]},
+      {q:"United's other big local rivals are Manchester…?",correct:"City",wrong:["Town","Albion","Athletic"]},
+      {q:"Wayne Rooney and Cristiano Ronaldo both starred for which club?",correct:"Manchester United",wrong:["Everton","Arsenal","Chelsea"]},
+      {q:"The top European club competition United have won is the…?",correct:"Champions League",wrong:["Europa League","World Cup","Premier League"]},
+      {q:"United's badge famously features a red…?",correct:"Devil",wrong:["Lion","Eagle","Dragon"]},
+      {q:"How long is a standard football match?",correct:"90 minutes",wrong:["60 minutes","80 minutes","120 minutes"]},
+      {q:"David Beckham, famed for free kicks, wore which iconic United shirt number?",correct:"7",wrong:["10","1","4"]},
+      {q:"United won the famous 'Treble' of three trophies in which year?",correct:"1999",wrong:["1995","2008","2011"]},
+      {q:"The legendary 'Class of '92' came through United's…?",correct:"Youth academy",wrong:["Transfer market","Reserve purchase","Loan system"]},
+      {q:"Which competition's final, won by United many times, is held at Wembley?",correct:"The FA Cup",wrong:["The Super Bowl","The Ryder Cup","The Ashes"]},
+      {q:"Eric Cantona, a United legend, was affectionately called 'King…'?",correct:"Eric",wrong:["Cantona","Red","Frenchie"]},
+      {q:"Old Trafford is one of the largest club stadiums in…?",correct:"England",wrong:["Spain","Italy","Germany"]},
+      {q:"United legend George Best came from which part of the UK?",correct:"Northern Ireland",wrong:["Scotland","Wales","Cornwall"]},
+      {q:"Sir Alex Ferguson was from which country?",correct:"Scotland",wrong:["England","Wales","Ireland"]},
+      {q:"Best, Law and Charlton were United stars of which decade?",correct:"The 1960s",wrong:["The 1990s","The 2010s","The 1930s"]},
+      {q:"Wayne Rooney went on to captain which national team?",correct:"England",wrong:["Scotland","Wales","Ireland"]},
+      {q:"Eric Cantona was famous for wearing his shirt collar…?",correct:"Turned up",wrong:["Inside out","Buttoned up","Backwards"]},
+      {q:"The 1999 'Treble' means United won how many trophies in one season?",correct:"Three",wrong:["Two","Four","Five"]},
+      {q:"Ryan Giggs spent his entire club playing career at which club?",correct:"Manchester United",wrong:["Liverpool","Chelsea","Arsenal"]},
+      {q:"United's famous home stand behind the goal is the ___ End?",correct:"Stretford",wrong:["Kop","North","Shed"]},
+      {q:"Sir Matt Busby and Sir Alex Ferguson were both United…?",correct:"Managers",wrong:["Players","Owners","Referees"]},
+      {q:"Cristiano Ronaldo is from which country?",correct:"Portugal",wrong:["Brazil","Spain","Argentina"]},
+      {q:"In football, the goal is guarded by the…?",correct:"Goalkeeper",wrong:["Striker","Winger","Referee"]}
+    ],
+    2:[
+      {q:"In which year was the club founded (as Newton Heath)?",correct:"1878",wrong:["1888","1902","1910"]},
+      {q:"What was the club's original name before 1902?",correct:"Newton Heath",wrong:["Manchester Central","Manchester City","Salford Reds"]},
+      {q:"Manchester United have won how many English top-flight league titles?",correct:"20",wrong:["12","15","25"]},
+      {q:"In which year did United move to Old Trafford?",correct:"1910",wrong:["1902","1924","1958"]},
+      {q:"Which tragedy struck the club in 1958?",correct:"The Munich air disaster",wrong:["A stadium fire","A flood","A bus crash"]},
+      {q:"Sir Matt Busby's young 1950s team were known as the 'Busby…'?",correct:"Babes",wrong:["Boys","Brigade","Bunch"]},
+      {q:"United were the first English club to win the European Cup, in which year?",correct:"1968",wrong:["1958","1977","1991"]},
+      {q:"Who holds United's record for most appearances?",correct:"Ryan Giggs",wrong:["Bobby Charlton","Wayne Rooney","Paul Scholes"]},
+      {q:"Who is United's all-time leading goalscorer?",correct:"Wayne Rooney",wrong:["Bobby Charlton","Cristiano Ronaldo","Denis Law"]},
+      {q:"How many times have United won the European Cup / Champions League?",correct:"Three",wrong:["One","Two","Five"]},
+      {q:"Sir Alex Ferguson won how many Premier League titles with United?",correct:"13",wrong:["8","10","20"]},
+      {q:"In the 1999 Champions League final, United beat which German club?",correct:"Bayern Munich",wrong:["Borussia Dortmund","Schalke","Bayer Leverkusen"]},
+      {q:"The 'Class of '92' included Beckham, Scholes, the Nevilles, Nicky Butt and…?",correct:"Ryan Giggs",wrong:["Wayne Rooney","Eric Cantona","Roy Keane"]},
+      {q:"Which French forward wore No.7 and was nicknamed 'King Eric'?",correct:"Eric Cantona",wrong:["David Beckham","Patrice Evra","Anthony Martial"]},
+      {q:"The 1968 European Cup-winning side featured Best, Law and which knighted England great?",correct:"Bobby Charlton",wrong:["Bryan Robson","Roy Keane","Peter Schmeichel"]},
+      {q:"Best, Law and Charlton are honoured outside Old Trafford as the 'United…'?",correct:"Trinity",wrong:["Triangle","Trio","Triple"]},
+      {q:"The 1999 Treble was the Premier League, the Champions League and which trophy?",correct:"The FA Cup",wrong:["The League Cup","The Europa League","The Community Shield"]},
+      {q:"Old Trafford has a capacity of roughly how many?",correct:"74,000",wrong:["40,000","60,000","100,000"]},
+      {q:"Which great Danish goalkeeper captained United in the 1999 Champions League final?",correct:"Peter Schmeichel",wrong:["Edwin van der Sar","David de Gea","Fabien Barthez"]},
+      {q:"Sir Alex Ferguson managed United for roughly how many years?",correct:"26",wrong:["10","18","35"]},
+      {q:"Newton Heath was founded by workers from which industry?",correct:"The railway",wrong:["Coal mining","Cotton mills","Shipping"]},
+      {q:"United v Liverpool clashes are known as the 'North West…'?",correct:"Derby",wrong:["Clash","Classic","Final"]},
+      {q:"Which midfielder, nicknamed 'Captain Marvel', was United's long-serving 1980s–90s captain?",correct:"Bryan Robson",wrong:["Roy Keane","Paul Ince","Steve Bruce"]},
+      {q:"Denis Law, a 1960s United great, was nicknamed 'The…'?",correct:"King",wrong:["Doc","Wizard","Captain"]},
+      {q:"Cristiano Ronaldo joined United in 2003 from which Portuguese club?",correct:"Sporting CP",wrong:["Benfica","Porto","Boavista"]},
+      {q:"From which Danish club did United sign Peter Schmeichel in 1991?",correct:"Brøndby",wrong:["FC Copenhagen","Ajax","PSV"]},
+      {q:"Wayne Rooney joined United in 2004 from which club?",correct:"Everton",wrong:["Liverpool","Manchester City","Newcastle"]},
+      {q:"The 'Class of '92' jointly own which English club?",correct:"Salford City",wrong:["Stockport County","Wrexham","Bury"]},
+      {q:"Which United and Scotland great is the only Scot to win the Ballon d'Or (1964)?",correct:"Denis Law",wrong:["Kenny Dalglish","Bobby Charlton","George Best"]},
+      {q:"United completed their first 'Double' (league and FA Cup) in which year?",correct:"1994",wrong:["1990","1996","1999"]},
+      {q:"Eric Cantona joined United in 1992 from which rival club?",correct:"Leeds United",wrong:["Liverpool","Arsenal","Everton"]},
+      {q:"Which prolific Dutch striker scored freely for United from 2001 to 2006?",correct:"Ruud van Nistelrooy",wrong:["Dennis Bergkamp","Robin van Persie","Marco van Basten"]}
+    ],
+    3:[
+      {q:"In which year was the club renamed Manchester United?",correct:"1902",wrong:["1892","1909","1910"]},
+      {q:"Newton Heath's original kit colours were green and…?",correct:"Gold",wrong:["Black","Blue","Red"]},
+      {q:"In the 1968 European Cup final, United beat which club 4–1?",correct:"Benfica",wrong:["Bayern Munich","Real Madrid","Ajax"]},
+      {q:"The 1958 Munich disaster occurred as the team returned from a match in which city?",correct:"Belgrade",wrong:["Madrid","Munich","Milan"]},
+      {q:"Who scored the stoppage-time winner in the 1999 Champions League final?",correct:"Ole Gunnar Solskjær",wrong:["Teddy Sheringham","David Beckham","Dwight Yorke"]},
+      {q:"United won their second European Cup in 2008, beating which English club on penalties?",correct:"Chelsea",wrong:["Liverpool","Arsenal","Tottenham"]},
+      {q:"Wayne Rooney's all-time United goal tally was approximately…?",correct:"253",wrong:["183","220","300"]},
+      {q:"Whose long-standing club goalscoring record did Rooney surpass?",correct:"Bobby Charlton",wrong:["Denis Law","George Best","Ruud van Nistelrooy"]},
+      {q:"United won their first English league title in which year?",correct:"1908",wrong:["1878","1902","1920"]},
+      {q:"Sir Matt Busby became United manager in which year?",correct:"1945",wrong:["1958","1968","1936"]},
+      {q:"The 2008 Champions League final was held in which city?",correct:"Moscow",wrong:["Rome","Athens","Lisbon"]},
+      {q:"Along with a ship, what features on the United crest?",correct:"A devil holding a trident",wrong:["A lion","A rose","A railway engine"]},
+      {q:"Who coined Old Trafford's nickname 'The Theatre of Dreams'?",correct:"Bobby Charlton",wrong:["Alex Ferguson","Eric Cantona","Matt Busby"]},
+      {q:"How many United players died as a result of the Munich air disaster?",correct:"Eight",wrong:["Three","Eleven","Five"]},
+      {q:"Ryan Giggs set a club appearance record in excess of how many games?",correct:"900",wrong:["500","700","1,100"]},
+      {q:"Which fiery Irish midfielder captained United through the late 1990s and 2000s?",correct:"Roy Keane",wrong:["Paul Ince","Bryan Robson","Nicky Butt"]},
+      {q:"At which stadium did United complete the 1999 Treble (the CL final venue)?",correct:"Camp Nou, Barcelona",wrong:["Wembley","San Siro","Old Trafford"]},
+      {q:"The 1968 European Cup final was played at which stadium?",correct:"Wembley",wrong:["Old Trafford","Hampden Park","Camp Nou"]},
+      {q:"Eric Cantona launched his infamous 'kung-fu kick' at a fan in which year?",correct:"1995",wrong:["1992","1999","2003"]},
+      {q:"Sir Alex Ferguson's first major United trophy was the 1990 edition of which competition?",correct:"The FA Cup",wrong:["The League Cup","The European Cup","The Premier League"]},
+      {q:"United's long league-title drought ended in which year (the first Premier League)?",correct:"1993",wrong:["1985","1999","2003"]},
+      {q:"Which member of the 1960s trio won the 1968 Ballon d'Or?",correct:"George Best",wrong:["Denis Law","Bobby Charlton","Bobby Moore"]},
+      {q:"Bryan Robson was signed in 1981 for a then-British-record fee from which club?",correct:"West Bromwich Albion",wrong:["Aston Villa","Leeds United","Everton"]},
+      {q:"Denis Law scored how many goals for United (third on the all-time list)?",correct:"237",wrong:["137","337","199"]},
+      {q:"Bobby Charlton's United goal record, later passed by Rooney, stood at how many?",correct:"249",wrong:["200","280","150"]},
+      {q:"Ronaldo's 2009 world-record move to Real Madrid was worth about…?",correct:"£80 million",wrong:["£40 million","£120 million","£200 million"]},
+      {q:"The 'Class of '92' core emerged after winning which youth trophy in 1992?",correct:"The FA Youth Cup",wrong:["The League Cup","The Community Shield","The European Cup"]},
+      {q:"Roy Keane produced a legendary 1999 semi-final display against which Italian club?",correct:"Juventus",wrong:["AC Milan","Inter Milan","Roma"]},
+      {q:"George Best earned which nickname after a dazzling 1966 display against Benfica?",correct:"El Beatle",wrong:["The King","The Doc","Captain Marvel"]},
+      {q:"After Old Trafford was bombed in WWII, United shared which rivals' ground for years?",correct:"Maine Road",wrong:["Anfield","Hillsborough","Goodison Park"]},
+      {q:"Which young Busby Babe died 15 days after the Munich crash from his injuries?",correct:"Duncan Edwards",wrong:["Bobby Charlton","Bill Foulkes","Harry Gregg"]},
+      {q:"Sir Alex Ferguson joined United in 1986 from which Scottish club he'd led to European glory?",correct:"Aberdeen",wrong:["Celtic","Rangers","Dundee"]},
+      {q:"Who scored a famous goal from the halfway line against Wimbledon in 1996?",correct:"David Beckham",wrong:["Ryan Giggs","Paul Scholes","Lee Sharpe"]}
+    ]
+  };
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3')};
+  function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  const KEYS=['A','B','C','D'];
+  const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CROSS='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#ff5d7a" stroke-width="3" stroke-linecap="round"/></svg>';
+
+  // ============ audio ============
+  let actx=null;
+  function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+  function beep(f,d=0.12,type='sine',vol=0.16){if(!actx)return;const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=f;o.connect(g);g.connect(actx.destination);const t=actx.currentTime;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+d);
+    o.start(t);o.stop(t+d+0.02);}
+  const sRight=()=>{beep(660,0.09,'sine',0.16);setTimeout(()=>beep(990,0.11,'sine',0.14),80);};
+  const sWrong=()=>{beep(200,0.22,'sawtooth',0.15);};
+  const sUp=()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.12,'triangle',0.15),i*70));};
+  const sDown=()=>{[523,415,330].forEach((f,i)=>setTimeout(()=>beep(f,0.13,'triangle',0.14),i*80));};
+  const sDone=()=>{[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,0.14,'sine',0.16),i*90));};
+  const sOut=()=>{[330,262,196].forEach((f,i)=>setTimeout(()=>beep(f,0.22,'triangle',0.15),i*130));};
+
+  // ============ state ============
+  let level,answered,correct,totalWrong,streakC,streakW,current,opts,locked,pendingMove;
+  let startT=0,timerId=null;
+
+  const $=id=>document.getElementById(id);
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  let queues,ptr;
+
+  function startGame(){
+    level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3])}; ptr={1:0,2:0,3:0};
+    hideAllScreens();
+    playing=true; startT=performance.now(); runTimer();
+    renderStrikes(); nextQuestion();
+  }
+
+  let TIME_LIMIT=120000;   // countdown length, set by the clock selector
+  let playing=false;
+  function remainingMs(){ return Math.max(0, TIME_LIMIT-(performance.now()-startT)); }
+  function tickTimer(){
+    const rem=remainingMs();
+    const el=$('timer'); el.textContent=fmt(rem);
+    const w=el.parentElement;
+    if(rem<=15000) w.classList.add('low'); else w.classList.remove('low');
+    if(rem<=0 && playing){ stopTimer(); endTimeUp(); }
+  }
+  function runTimer(){ clearInterval(timerId); tickTimer(); timerId=setInterval(tickTimer,150); }
+  function stopTimer(){ clearInterval(timerId); }
+  function fmt(ms){const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+
+  function drawQuestion(){
+    const pool=queues[level];
+    if(ptr[level]>=pool.length){ queues[level]=shuffle(BANK[level]); ptr[level]=0; }
+    return queues[level][ptr[level]++];
+  }
+
+  function nextQuestion(){
+    current=drawQuestion();
+    opts=shuffle([current.correct,...current.wrong]);
+    // HUD
+    $('lvlPill').textContent=LVL_NAMES[level];
+    $('lvlPill').style.background=LVL_COLOR[level];
+    $('qcount').textContent='QUESTION '+(answered+1)+' OF 20';
+    $('progbar').style.width=(answered/20*100)+'%';
+    $('qtext').textContent=current.q;
+    const box=$('opts'); box.className='opts'; box.innerHTML='';
+    opts.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='opt';
+      b.innerHTML='<span class="key">'+KEYS[i]+'</span><span class="txt">'+o+'</span><span style="width:24px;flex:none"></span>';
+      b.addEventListener('click',()=>answer(o,b));
+      box.appendChild(b);
+    });
+    locked=false;
+  }
+
+  function renderStrikes(){
+    const el=$('strikes'); el.innerHTML='';
+    for(let i=0;i<4;i++){const s=document.createElement('span');s.className='strike'+(i<totalWrong?' used':'');el.appendChild(s);}
+  }
+
+  function toast(msg,color){
+    const t=$('toast'); t.textContent=msg; t.style.background=color; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),1100);
+  }
+
+  function answer(choice,btn){
+    if(locked) return; locked=true;
+    const right=(choice===current.correct);
+    answered++;
+    const box=$('opts'); box.classList.add('locked');
+    // reveal
+    [...box.children].forEach(c=>{
+      const label=c.querySelector('.txt').textContent;
+      const mark=c.lastElementChild;
+      if(label===current.correct){ c.classList.add('correct'); mark.outerHTML=CHECK; }
+      else if(c===btn){ c.classList.add('wrong'); mark.outerHTML=CROSS; }
+      else c.classList.add('dim');
+    });
+
+    if(right){
+      correct++; sRight(); streakW=0; streakC++;
+      if(streakC>=2 && level<3){ level++; streakC=0; pendingMove='up'; }
+    } else {
+      totalWrong++; sWrong(); streakC=0; streakW++;
+      renderStrikes();
+      if(totalWrong<4 && streakW>=2 && level>1){ level--; streakW=0; pendingMove='down'; }
+    }
+    $('progbar').style.width=(answered/20*100)+'%';
+
+    setTimeout(()=>{
+      if(!playing) return;
+      if(totalWrong>=4){ endOut(); return; }
+      if(answered>=20){ endDone(); return; }
+      if(pendingMove==='up'){ toast('Level Up!',LVL_COLOR[level]); sUp(); }
+      else if(pendingMove==='down'){ toast('Level Down',LVL_COLOR[level]); sDown(); }
+      pendingMove=null;
+      nextQuestion();
+    }, right?780:1050);
+  }
+
+  function endOut(){
+    playing=false; stopTimer(); sOut();
+    $('outAns').textContent=answered; $('outCorr').textContent=correct;
+    show('outScreen');
+  }
+  function endDone(){
+    playing=false; stopTimer(); sDone();
+    $('doneTime').textContent=fmt(remainingMs());
+    $('doneCorr').textContent=correct;
+    $('doneLvl').textContent='LEVEL '+level;
+    $('doneAns').textContent=answered;
+    show('doneScreen');
+  }
+  function endTimeUp(){
+    playing=false; stopTimer(); sOut();
+    $('tuAns').textContent=answered; $('tuCorr').textContent=correct;
+    show('timeupScreen');
+  }
+
+  // ============ screen helpers ============
+  const SCREENS=['startScreen','outScreen','doneScreen','timeupScreen'];
+  function hideAllScreens(){SCREENS.forEach(s=>$(s).classList.add('hidden'));}
+  function show(id){hideAllScreens();$(id).classList.remove('hidden');}
+
+  // ============ wiring ============
+  function toMenu(){ ensureAudio(); playing=false; stopTimer(); show('startScreen'); }
+  $('startBtn').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneAgain').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('outRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('tuRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneMenu').addEventListener('click',toMenu);
+  $('outMenu').addEventListener('click',toMenu);
+  $('tuMenu').addEventListener('click',toMenu);
+  // keyboard 1-4 to answer
+  window.addEventListener('keydown',e=>{
+    if(e.target&&e.target.tagName==='INPUT')return;
+    if(playing){
+      const n=parseInt(e.key,10);
+      if(n>=1&&n<=4){const b=$('opts').children[n-1]; if(b)b.click();}
+    }
+  });
+
+  // start on menu
+  renderStrikes();
+  // ---- clock selector ----
+  const TIME_OPTS=[{n:'Chill',ms:180000,l:'3:00'},{n:'Classic',ms:120000,l:'2:00'},{n:'Hard',ms:90000,l:'1:30'}];
+  (function(){ const row=$('timeRow'); if(!row) return;
+    TIME_OPTS.forEach(o=>{ const b=document.createElement('button');
+      b.className='timeopt'+(o.ms===TIME_LIMIT?' sel':''); b.textContent=o.n+' · '+o.l;
+      b.addEventListener('click',()=>{ ensureAudio(); TIME_LIMIT=o.ms;
+        [...row.children].forEach(c=>c.classList.remove('sel')); b.classList.add('sel'); beep(560,0.06,'sine',0.12); });
+      row.appendChild(b); });
+  })();
+})();
+</script>
+</body>
+</html>

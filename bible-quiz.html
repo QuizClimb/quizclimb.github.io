@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bible Quiz Climb — 20 Questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#160f2e; --bg1:#241a4d; --card:#221a45; --card2:#2c2356;
+    --ink:#f3eeff; --mut:#b3a6d6; --line:#3d3470;
+    --l1:#36c98a; --l2:#f2c95c; --l3:#c98ae0;
+    --gold:#f2c95c; --right:#36c98a; --wrong:#ff5d8a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(120% 90% at 82% -10%, rgba(242,201,92,.20), transparent 55%),
+      radial-gradient(100% 80% at 0% 110%, rgba(150,110,230,.22), transparent 55%),
+      linear-gradient(160deg,var(--bg0),var(--bg1));
+    display:flex;align-items:center;justify-content:center;min-height:100%;
+    overflow:hidden;user-select:none;touch-action:manipulation;}
+  #app{position:relative;width:100%;max-width:560px;height:100dvh;max-height:760px;
+    display:flex;flex-direction:column;padding:16px;gap:12px;overflow:hidden;}
+  .display{font-family:'Baloo 2',cursive;}
+
+  /* ---------- HUD ---------- */
+  #hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .lvlpill{font-family:'Baloo 2';font-weight:700;font-size:14px;letter-spacing:.5px;
+    padding:6px 14px;border-radius:30px;color:#10142e;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+  .timer{margin-left:auto;font-family:'Baloo 2';font-weight:700;font-size:20px;color:var(--gold);
+    display:flex;align-items:center;gap:6px;}
+  .timer svg{width:17px;height:17px;opacity:.85}
+  .strikes{display:flex;gap:5px;align-items:center;}
+  .strike{width:15px;height:15px;border-radius:50%;border:2px solid var(--line);
+    transition:all .25s;position:relative;}
+  .strike.used{background:var(--wrong);border-color:var(--wrong);box-shadow:0 0 10px rgba(255,93,122,.6);}
+  .progwrap{height:8px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;}
+  .progbar{height:100%;width:0;background:linear-gradient(90deg,var(--l1),var(--gold));
+    border-radius:10px;transition:width .4s cubic-bezier(.4,1.3,.5,1);}
+  .qcount{font-weight:800;color:var(--mut);font-size:13px;letter-spacing:.5px;}
+
+  /* ---------- question ---------- */
+  #qcard{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;min-height:0;}
+  .qbox{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);
+    border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.3);}
+  .qtext{font-family:'Baloo 2';font-weight:700;font-size:clamp(20px,5.4vw,28px);line-height:1.25;}
+  .opts{display:flex;flex-direction:column;gap:11px;}
+  .opt{font-family:'Nunito';font-weight:700;font-size:clamp(16px,4.4vw,19px);color:var(--ink);
+    background:var(--card2);border:2px solid var(--line);border-radius:15px;padding:15px 18px;
+    text-align:left;cursor:pointer;display:flex;align-items:center;gap:13px;
+    transition:transform .08s,background .15s,border-color .15s;}
+  .opt:active{transform:scale(.985);}
+  .opt .key{flex:none;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;font-family:'Baloo 2';font-weight:700;
+    font-size:15px;color:var(--mut);}
+  .opt .txt{flex:1;}
+  .opt .mark{flex:none;width:24px;height:24px;opacity:0;transition:opacity .2s;}
+  .opt.correct{background:rgba(51,201,138,.18);border-color:var(--right);}
+  .opt.correct .key{background:var(--right);color:#08221a;}
+  .opt.correct .mark{opacity:1;}
+  .opt.wrong{background:rgba(255,93,122,.16);border-color:var(--wrong);}
+  .opt.wrong .key{background:var(--wrong);color:#2a0a12;}
+  .opt.wrong .mark{opacity:1;}
+  .opt.dim{opacity:.45;}
+  .opts.locked .opt{cursor:default;}
+
+  /* ---------- toast ---------- */
+  #toast{position:absolute;top:64px;left:50%;transform:translateX(-50%) translateY(-12px);
+    font-family:'Baloo 2';font-weight:800;font-size:17px;padding:9px 20px;border-radius:30px;
+    color:#0e142e;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:8;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- overlays ---------- */
+  .screen{position:absolute;inset:0;background:linear-gradient(160deg,rgba(14,19,48,.97),rgba(27,33,80,.98));
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:26px;gap:16px;z-index:10;overflow-y:auto;}
+  .screen.hidden{display:none;}
+  .big{font-family:'Baloo 2';font-weight:800;font-size:clamp(34px,9vw,56px);line-height:.95;
+    background:linear-gradient(120deg,var(--gold),#ff9e6b);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--mut);font-weight:600;letter-spacing:3px;font-size:13px;text-transform:uppercase;}
+  .lead{font-size:clamp(15px,3.8vw,18px);color:#cdd3ff;font-weight:600;max-width:430px;line-height:1.5;}
+  .rules{text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;
+    padding:16px 18px;max-width:430px;display:flex;flex-direction:column;gap:9px;}
+  .rule{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:#dfe3ff;font-weight:600;line-height:1.35;}
+  .rule .dot{flex:none;width:9px;height:9px;border-radius:50%;margin-top:6px;}
+  button.cta{font-family:'Baloo 2';font-weight:700;font-size:clamp(19px,5vw,23px);color:#10142e;
+    background:linear-gradient(180deg,var(--gold),#f5a93a);border:none;cursor:pointer;
+    padding:14px 44px;border-radius:50px;box-shadow:0 7px 0 #b9801f,0 12px 26px rgba(245,170,60,.4);
+    transition:transform .08s,box-shadow .08s;}
+  button.cta:active{transform:translateY(4px);box-shadow:0 3px 0 #b9801f;}
+  button.cta.blue{background:linear-gradient(180deg,#6fa8ff,#3d7fe8);box-shadow:0 7px 0 #2b5cad,0 12px 26px rgba(60,120,230,.4);color:#fff;}
+  button.cta.blue:active{box-shadow:0 3px 0 #2b5cad;}
+  button.ghost{background:none;border:none;font-family:'Nunito';font-weight:800;color:#8fb6ff;
+    font-size:15px;cursor:pointer;text-decoration:underline;padding:6px;}
+  .statline{font-size:clamp(16px,4vw,20px);color:#cdd3ff;font-weight:700;}
+  .statline b{color:var(--gold);font-size:1.3em;font-family:'Baloo 2';}
+  .timeBig{font-family:'Baloo 2';font-weight:800;font-size:clamp(46px,13vw,76px);color:var(--gold);line-height:1;}
+
+  /* ---------- scoreboard ---------- */
+  .board{width:100%;max-width:440px;background:rgba(255,255,255,.04);border:1px solid var(--line);
+    border-radius:16px;padding:8px;max-height:46vh;overflow-y:auto;}
+  .board h3{font-family:'Baloo 2';font-size:14px;color:var(--gold);letter-spacing:2px;margin:6px 0 8px;}
+  .brow{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:11px;font-weight:700;font-size:15px;}
+  .brow:nth-child(even){background:rgba(255,255,255,.04);}
+  .brow.me{background:rgba(255,215,94,.14);box-shadow:inset 0 0 0 2px rgba(255,215,94,.5);}
+  .brk{width:26px;text-align:center;font-family:'Baloo 2';color:var(--gold);font-weight:800;}
+  .bwho{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bcorr{color:var(--mut);font-size:12.5px;font-weight:700;}
+  .btime{font-family:'Baloo 2';font-weight:800;color:#bfe9d6;}
+  .empty,.loading{color:var(--mut);font-weight:600;padding:16px;font-size:14px;}
+  .namebox{display:flex;gap:9px;width:100%;max-width:380px;}
+  .namebox input{flex:1;font-family:'Nunito';font-weight:700;font-size:17px;color:var(--ink);
+    background:rgba(255,255,255,.06);border:2px solid var(--line);border-radius:14px;padding:12px 15px;
+    text-align:center;outline:none;}
+  .namebox input:focus{border-color:var(--gold);}
+  button.save{font-family:'Baloo 2';font-weight:700;font-size:16px;color:#0e142e;border:none;cursor:pointer;
+    padding:12px 20px;border-radius:14px;background:linear-gradient(180deg,#5fe0a8,#33c98a);
+    box-shadow:0 4px 0 #1f8a5e;white-space:nowrap;}
+  button.save:active{transform:translateY(3px);box-shadow:0 1px 0 #1f8a5e;}
+  .savedok{color:var(--right);font-weight:800;}
+  .hidden{display:none!important;}
+  .timelabel{font-weight:700;color:var(--mut);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:-4px;}
+  .timerow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .timeopt{font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--mut);background:rgba(255,255,255,.05);
+    border:2px solid var(--line);border-radius:30px;padding:8px 16px;cursor:pointer;transition:all .12s;}
+  .timeopt.sel{color:#10142e;background:var(--gold);border-color:var(--gold);}
+  .timeopt:active{transform:scale(.95);}
+  .timer.low{color:var(--wrong);animation:pulse .8s ease-in-out infinite;}
+  .timer.low svg{color:var(--wrong);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  .homelink{display:inline-block;margin-top:6px;font-family:inherit;font-weight:700;font-size:14px;
+    color:var(--mut);text-decoration:none;opacity:.85;transition:opacity .15s;}
+  .homelink:hover{opacity:1;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- live HUD -->
+  <div id="hud">
+    <span class="lvlpill display" id="lvlPill">LEVEL 1</span>
+    <span class="strikes" id="strikes"></span>
+    <span class="timer display"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="timer">0:00</span></span>
+  </div>
+  <div class="progwrap"><div class="progbar" id="progbar"></div></div>
+  <div class="qcount" id="qcount">QUESTION 1 OF 20</div>
+
+  <!-- question -->
+  <div id="qcard">
+    <div class="qbox"><div class="qtext" id="qtext">…</div></div>
+    <div class="opts" id="opts"></div>
+  </div>
+
+  <div id="toast" class="display"></div>
+
+  <!-- START -->
+  <div class="screen" id="startScreen">
+    <div class="sub">Bible Trivia</div>
+    <h1 class="big display">Quiz Climb</h1>
+    <p class="lead">20 questions on the Bible — its best-known stories, parables, passages and people. The better you do, the harder it gets!</p>
+    <div class="rules">
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
+    </div>
+    <div class="timelabel">Choose your clock</div>
+    <div class="timerow" id="timeRow"></div>
+    <button class="cta" id="startBtn">Start Quiz</button>
+    <a class="homelink" href="index.html">‹ All games</a>
+  </div>
+
+  <!-- KNOCKED OUT -->
+  <div class="screen hidden" id="outScreen">
+    <div class="sub" style="color:var(--wrong)">Knocked Out</div>
+    <h1 class="big display" style="background:linear-gradient(120deg,#ff6b8a,#ff9e6b);-webkit-background-clip:text;background-clip:text;">So close!</h1>
+    <p class="lead">You ran out of lives, but you can jump straight back in.</p>
+    <p class="statline">You answered <b id="outAns">0</b> questions<br>and got <b id="outCorr">0</b> right</p>
+    <button class="cta" id="outRetry">Try Again</button>
+    <button class="ghost" id="outMenu">Back to Menu</button>
+  </div>
+
+  <!-- COMPLETED -->
+  <div class="screen hidden" id="doneScreen">
+    <div class="sub">All 20 Complete!</div>
+    <div class="timeBig display" id="doneTime">0:00</div>
+    <p class="statline" style="margin-top:-6px;">left on the clock</p>
+    <p class="statline"><b id="doneCorr">0</b> correct · <b id="doneAns">20</b>/20 answered</p>
+    <p class="statline">reached <b id="doneLvl">LEVEL 1</b></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="cta" id="doneAgain">Play Again</button>
+      <button class="cta blue" id="doneMenu">Menu</button>
+    </div>
+  </div>
+
+  <!-- TIME'S UP -->
+  <div class="screen hidden" id="timeupScreen">
+    <div class="sub" style="color:var(--gold)">Time's Up!</div>
+    <h1 class="big display">Final whistle!</h1>
+    <p class="lead">Your 2 minutes are up — here's how far you climbed.</p>
+    <p class="statline">You answered <b id="tuAns">0</b> questions<br>and got <b id="tuCorr">0</b> right</p>
+    <button class="cta" id="tuRetry">Try Again</button>
+    <button class="ghost" id="tuMenu">Back to Menu</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============ QUESTION BANK (stable, settled facts) ============
+  const BANK={
+    1:[
+      {q:"Who built an ark to survive a great flood?",correct:"Noah",wrong:["Moses","Abraham","David"]},
+      {q:"In the Bible, who were the first man and woman?",correct:"Adam and Eve",wrong:["Cain and Abel","Abraham and Sarah","Isaac and Rebekah"]},
+      {q:"Which young shepherd defeated the giant Goliath?",correct:"David",wrong:["Samson","Saul","Solomon"]},
+      {q:"Who was swallowed by a great fish (often called a whale)?",correct:"Jonah",wrong:["Job","Joshua","Jeremiah"]},
+      {q:"God created the world in how many days, resting on the seventh?",correct:"Six",wrong:["Three","Seven","Ten"]},
+      {q:"Who led the Israelites out of slavery in Egypt?",correct:"Moses",wrong:["Aaron","Joshua","Joseph"]},
+      {q:"What did God give Moses on Mount Sinai?",correct:"The Ten Commandments",wrong:["The Golden Calf","The Ark of the Covenant","The Book of Psalms"]},
+      {q:"Who was born in a manger in Bethlehem?",correct:"Jesus",wrong:["John the Baptist","Moses","Isaac"]},
+      {q:"How many disciples (apostles) did Jesus choose?",correct:"Twelve",wrong:["Ten","Seven","Three"]},
+      {q:"Who baptised Jesus in the River Jordan?",correct:"John the Baptist",wrong:["Peter","Paul","Andrew"]},
+      {q:"What is the first book of the Bible?",correct:"Genesis",wrong:["Exodus","Psalms","Matthew"]},
+      {q:"Which garden did Adam and Eve live in?",correct:"The Garden of Eden",wrong:["Gethsemane","Babylon","Canaan"]},
+      {q:"In Eden, who tempted Eve to eat the forbidden fruit?",correct:"The serpent",wrong:["A lion","An angel","A raven"]},
+      {q:"Jesus turned water into what at a wedding in Cana?",correct:"Wine",wrong:["Bread","Oil","Milk"]},
+      {q:"Who betrayed Jesus for thirty pieces of silver?",correct:"Judas Iscariot",wrong:["Peter","Thomas","Pontius Pilate"]},
+      {q:"What is the last book of the Bible?",correct:"Revelation",wrong:["Acts","Malachi","Jude"]},
+      {q:"Which sea did Moses part for the Israelites to cross?",correct:"The Red Sea",wrong:["The Dead Sea","The Sea of Galilee","The Mediterranean"]},
+      {q:"Who was thrown into a den of lions but was left unharmed?",correct:"Daniel",wrong:["David","Samson","Stephen"]},
+      {q:"What sign did God give Noah after the flood as a promise?",correct:"A rainbow",wrong:["A dove","A star","A burning bush"]},
+      {q:"Jesus was crucified on a…?",correct:"Cross",wrong:["Throne","Mountain","Pillar"]},
+      {q:"On which day do Christians believe Jesus rose from the dead?",correct:"The third day",wrong:["The first day","The seventh day","The fortieth day"]},
+      {q:"Which strong man lost his strength when his hair was cut?",correct:"Samson",wrong:["Goliath","Gideon","Elijah"]},
+      {q:"Who received a coat of many colours from his father?",correct:"Joseph",wrong:["Jacob","Benjamin","Reuben"]},
+      {q:"In which town was Jesus born?",correct:"Bethlehem",wrong:["Nazareth","Jerusalem","Capernaum"]},
+      {q:"What did the Israelites worship while Moses was on the mountain?",correct:"A golden calf",wrong:["A bronze serpent","A stone idol","A silver lamb"]},
+      {q:"Which apostle denied Jesus three times before the rooster crowed?",correct:"Peter",wrong:["John","Judas","Thomas"]},
+      {q:"The Bible is divided into the Old Testament and the…?",correct:"New Testament",wrong:["Final Testament","Middle Testament","Last Gospel"]},
+      {q:"How many wise men (Magi) are traditionally said to have visited Jesus?",correct:"Three",wrong:["Two","Five","Twelve"]},
+      {q:"The wise men brought gold, frankincense and…?",correct:"Myrrh",wrong:["Silver","Honey","Wine"]},
+      {q:"Who was the mother of Jesus?",correct:"Mary",wrong:["Martha","Elizabeth","Ruth"]},
+      {q:"What do Christians call Jesus's final meal with his disciples?",correct:"The Last Supper",wrong:["The First Feast","The Passover Lamb","The Wedding Feast"]},
+      {q:"Jesus fed a great crowd with five loaves and two…?",correct:"Fish",wrong:["Coins","Stones","Doves"]}
+    ],
+    2:[
+      {q:"In the Parable of the Good Samaritan, who finally helped the injured man?",correct:"A Samaritan",wrong:["A priest","A Levite","A Roman soldier"]},
+      {q:"The Parable of the Prodigal Son is about a father and his…?",correct:"Two sons",wrong:["Three daughters","Twelve disciples","Seven servants"]},
+      {q:"Who wrote many of the Psalms and was a king of Israel?",correct:"David",wrong:["Solomon","Saul","Samuel"]},
+      {q:"Which king was famed for his wisdom and built the first Temple in Jerusalem?",correct:"Solomon",wrong:["David","Saul","Hezekiah"]},
+      {q:"Jesus delivered a famous sermon known as the Sermon on the…?",correct:"Mount",wrong:["Plain","Sea","Hill"]},
+      {q:"The Beatitudes ('Blessed are…') come from which teaching?",correct:"The Sermon on the Mount",wrong:["The Last Supper","The Road to Emmaus","Pentecost"]},
+      {q:"Which brother killed Abel in the first murder?",correct:"Cain",wrong:["Seth","Esau","Ishmael"]},
+      {q:"God asked Abraham to sacrifice which son, before stopping him?",correct:"Isaac",wrong:["Ishmael","Jacob","Joseph"]},
+      {q:"Which prophet was taken up to heaven in a chariot of fire?",correct:"Elijah",wrong:["Elisha","Isaiah","Ezekiel"]},
+      {q:"Who interpreted Pharaoh's dreams and rose to power in Egypt?",correct:"Joseph",wrong:["Moses","Daniel","Aaron"]},
+      {q:"The walls of which city fell after the Israelites marched around them?",correct:"Jericho",wrong:["Babylon","Nineveh","Jerusalem"]},
+      {q:"Who was the first king of Israel?",correct:"Saul",wrong:["David","Solomon","Samuel"]},
+      {q:"In the Parable of the Sower, the seed falls on different kinds of…?",correct:"Soil",wrong:["Water","Sand","Snow"]},
+      {q:"Which Gospel is the first book of the New Testament?",correct:"Matthew",wrong:["Mark","Luke","John"]},
+      {q:"How many Gospels are there in the New Testament?",correct:"Four",wrong:["Three","Seven","Twelve"]},
+      {q:"The four Gospel writers are Matthew, Mark, Luke and…?",correct:"John",wrong:["Paul","Peter","James"]},
+      {q:"Which Roman governor sentenced Jesus to be crucified?",correct:"Pontius Pilate",wrong:["Herod","Caesar Augustus","Caiaphas"]},
+      {q:"Which disciple is nicknamed 'Doubting' for doubting the resurrection?",correct:"Thomas",wrong:["Peter","Judas","Bartholomew"]},
+      {q:"The Israelites wandered in the wilderness for how many years?",correct:"Forty",wrong:["Ten","Four","Seventy"]},
+      {q:"Who was the wife of Abraham and mother of Isaac?",correct:"Sarah",wrong:["Rebekah","Rachel","Leah"]},
+      {q:"Which book tells of the early church and is a sequel to Luke's Gospel?",correct:"Acts",wrong:["Romans","Hebrews","James"]},
+      {q:"On the road to which city was Paul dramatically converted?",correct:"Damascus",wrong:["Rome","Corinth","Jerusalem"]},
+      {q:"In the Parable of the Talents, servants are entrusted with their master's…?",correct:"Money",wrong:["Sheep","Land","Wine"]},
+      {q:"Which queen visited Solomon, impressed by his wisdom?",correct:"The Queen of Sheba",wrong:["Queen Esther","Queen Jezebel","Queen Vashti"]},
+      {q:"Which woman betrayed the secret of Samson's strength?",correct:"Delilah",wrong:["Bathsheba","Ruth","Rahab"]},
+      {q:"Moses' brother, who became the first high priest, was…?",correct:"Aaron",wrong:["Joshua","Caleb","Eli"]},
+      {q:"Whom did Jesus raise from the dead after four days in the tomb?",correct:"Lazarus",wrong:["Nicodemus","Bartimaeus","Jairus"]},
+      {q:"The Ten Commandments were written on tablets of…?",correct:"Stone",wrong:["Wood","Clay","Gold"]},
+      {q:"Who led the Israelites into the Promised Land after Moses died?",correct:"Joshua",wrong:["Caleb","Aaron","Gideon"]},
+      {q:"In the nativity, angels announced Jesus's birth to whom in the fields?",correct:"Shepherds",wrong:["Kings","Soldiers","Fishermen"]},
+      {q:"Which book tells of a man who loses everything yet keeps his faith?",correct:"Job",wrong:["Ruth","Esther","Jonah"]},
+      {q:"Who baptised people in the wilderness and was later beheaded by Herod?",correct:"John the Baptist",wrong:["John the Apostle","Stephen","James"]}
+    ],
+    3:[
+      {q:"Which king is traditionally credited with writing Psalm 23?",correct:"David",wrong:["Solomon","Asaph","Moses"]},
+      {q:"The Parable of the Good Samaritan appears in which Gospel?",correct:"Luke",wrong:["Matthew","Mark","John"]},
+      {q:"The Parable of the Prodigal Son appears only in which Gospel?",correct:"Luke",wrong:["Matthew","Mark","John"]},
+      {q:"How many books are there in the Protestant Bible?",correct:"66",wrong:["27","39","100"]},
+      {q:"How many books are in the New Testament?",correct:"27",wrong:["12","39","50"]},
+      {q:"Who was the father of John the Baptist, a priest struck mute?",correct:"Zechariah",wrong:["Zebedee","Zacchaeus","Zerubbabel"]},
+      {q:"Which disciple was chosen to replace Judas Iscariot among the Twelve?",correct:"Matthias",wrong:["Barnabas","Stephen","Silas"]},
+      {q:"On the road to Emmaus, the disciples recognised the risen Jesus when he…?",correct:"Broke bread",wrong:["Spoke their names","Healed them","Walked on water"]},
+      {q:"Which prophet saw a vision of a valley of dry bones?",correct:"Ezekiel",wrong:["Isaiah","Jeremiah","Daniel"]},
+      {q:"Who was the tax collector that climbed a sycamore tree to see Jesus?",correct:"Zacchaeus",wrong:["Matthew","Nicodemus","Bartimaeus"]},
+      {q:"Abel offered animals from his flock; Cain offered what?",correct:"Crops",wrong:["Fish","Gold","Wine"]},
+      {q:"On which mountain did Noah's ark come to rest?",correct:"Mount Ararat",wrong:["Mount Sinai","Mount Carmel","Mount Nebo"]},
+      {q:"On which mountain did Moses die, viewing the Promised Land?",correct:"Mount Nebo",wrong:["Mount Sinai","Mount Ararat","Mount Tabor"]},
+      {q:"How many plagues did God send upon Egypt?",correct:"Ten",wrong:["Seven","Twelve","Three"]},
+      {q:"What was the final plague of Egypt?",correct:"Death of the firstborn",wrong:["Locusts","Hail","Darkness"]},
+      {q:"Which prophet confronted King David over Bathsheba?",correct:"Nathan",wrong:["Samuel","Elijah","Gad"]},
+      {q:"Esther became queen of which empire, and saved her people there?",correct:"Persia",wrong:["Egypt","Babylon","Assyria"]},
+      {q:"Which book comes immediately after the four Gospels?",correct:"Acts",wrong:["Romans","Revelation","Genesis"]},
+      {q:"Paul's famous 'love is patient, love is kind' passage is in his letter to the…?",correct:"Corinthians",wrong:["Romans","Galatians","Ephesians"]},
+      {q:"Which Gospel opens with 'In the beginning was the Word'?",correct:"John",wrong:["Matthew","Mark","Luke"]},
+      {q:"God changed Jacob's name to…?",correct:"Israel",wrong:["Abraham","Peter","Paul"]},
+      {q:"How many people were saved on Noah's ark?",correct:"Eight",wrong:["Two","Twelve","Forty"]},
+      {q:"On which body of water did Jesus walk?",correct:"The Sea of Galilee",wrong:["The Red Sea","The Dead Sea","The Mediterranean"]},
+      {q:"Which high priest presided over Jesus's trial before the Sanhedrin?",correct:"Caiaphas",wrong:["Nicodemus","Gamaliel","Joseph of Arimathea"]},
+      {q:"Which apostle had been a tax collector before following Jesus?",correct:"Matthew",wrong:["Peter","Andrew","Philip"]},
+      {q:"At which mountain did the burning bush appear to Moses?",correct:"Mount Sinai",wrong:["Mount Ararat","Mount Nebo","Mount Carmel"]},
+      {q:"On Mount Carmel, which prophet defeated the prophets of Baal?",correct:"Elijah",wrong:["Elisha","Moses","Samuel"]},
+      {q:"Which Moabite woman, great-grandmother of King David, has a book named after her?",correct:"Ruth",wrong:["Esther","Naomi","Rahab"]},
+      {q:"For how many days and nights did it rain during Noah's flood?",correct:"Forty",wrong:["Seven","Twelve","One hundred"]},
+      {q:"What number is famously called 'the number of the beast' in Revelation?",correct:"666",wrong:["777","616","100"]},
+      {q:"Which apostle, once named Saul, became the great missionary to the Gentiles?",correct:"Paul",wrong:["Peter","Barnabas","Timothy"]},
+      {q:"How old was Methuselah, the longest-lived man in the Bible, said to be?",correct:"969",wrong:["365","777","1,000"]},
+      {q:"After feeding the 5,000, how many baskets of leftovers were gathered?",correct:"Twelve",wrong:["Seven","Five","Three"]}
+    ]
+  };
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3')};
+  function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  const KEYS=['A','B','C','D'];
+  const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CROSS='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#ff5d7a" stroke-width="3" stroke-linecap="round"/></svg>';
+
+  // ============ audio ============
+  let actx=null;
+  function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+  function beep(f,d=0.12,type='sine',vol=0.16){if(!actx)return;const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=f;o.connect(g);g.connect(actx.destination);const t=actx.currentTime;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+d);
+    o.start(t);o.stop(t+d+0.02);}
+  const sRight=()=>{beep(660,0.09,'sine',0.16);setTimeout(()=>beep(990,0.11,'sine',0.14),80);};
+  const sWrong=()=>{beep(200,0.22,'sawtooth',0.15);};
+  const sUp=()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.12,'triangle',0.15),i*70));};
+  const sDown=()=>{[523,415,330].forEach((f,i)=>setTimeout(()=>beep(f,0.13,'triangle',0.14),i*80));};
+  const sDone=()=>{[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,0.14,'sine',0.16),i*90));};
+  const sOut=()=>{[330,262,196].forEach((f,i)=>setTimeout(()=>beep(f,0.22,'triangle',0.15),i*130));};
+
+  // ============ state ============
+  let level,answered,correct,totalWrong,streakC,streakW,current,opts,locked,pendingMove;
+  let startT=0,timerId=null;
+
+  const $=id=>document.getElementById(id);
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  let queues,ptr;
+
+  function startGame(){
+    level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3])}; ptr={1:0,2:0,3:0};
+    hideAllScreens();
+    playing=true; startT=performance.now(); runTimer();
+    renderStrikes(); nextQuestion();
+  }
+
+  let TIME_LIMIT=120000;   // countdown length, set by the clock selector
+  let playing=false;
+  function remainingMs(){ return Math.max(0, TIME_LIMIT-(performance.now()-startT)); }
+  function tickTimer(){
+    const rem=remainingMs();
+    const el=$('timer'); el.textContent=fmt(rem);
+    const w=el.parentElement;
+    if(rem<=15000) w.classList.add('low'); else w.classList.remove('low');
+    if(rem<=0 && playing){ stopTimer(); endTimeUp(); }
+  }
+  function runTimer(){ clearInterval(timerId); tickTimer(); timerId=setInterval(tickTimer,150); }
+  function stopTimer(){ clearInterval(timerId); }
+  function fmt(ms){const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+
+  function drawQuestion(){
+    const pool=queues[level];
+    if(ptr[level]>=pool.length){ queues[level]=shuffle(BANK[level]); ptr[level]=0; }
+    return queues[level][ptr[level]++];
+  }
+
+  function nextQuestion(){
+    current=drawQuestion();
+    opts=shuffle([current.correct,...current.wrong]);
+    // HUD
+    $('lvlPill').textContent=LVL_NAMES[level];
+    $('lvlPill').style.background=LVL_COLOR[level];
+    $('qcount').textContent='QUESTION '+(answered+1)+' OF 20';
+    $('progbar').style.width=(answered/20*100)+'%';
+    $('qtext').textContent=current.q;
+    const box=$('opts'); box.className='opts'; box.innerHTML='';
+    opts.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='opt';
+      b.innerHTML='<span class="key">'+KEYS[i]+'</span><span class="txt">'+o+'</span><span style="width:24px;flex:none"></span>';
+      b.addEventListener('click',()=>answer(o,b));
+      box.appendChild(b);
+    });
+    locked=false;
+  }
+
+  function renderStrikes(){
+    const el=$('strikes'); el.innerHTML='';
+    for(let i=0;i<4;i++){const s=document.createElement('span');s.className='strike'+(i<totalWrong?' used':'');el.appendChild(s);}
+  }
+
+  function toast(msg,color){
+    const t=$('toast'); t.textContent=msg; t.style.background=color; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),1100);
+  }
+
+  function answer(choice,btn){
+    if(locked) return; locked=true;
+    const right=(choice===current.correct);
+    answered++;
+    const box=$('opts'); box.classList.add('locked');
+    // reveal
+    [...box.children].forEach(c=>{
+      const label=c.querySelector('.txt').textContent;
+      const mark=c.lastElementChild;
+      if(label===current.correct){ c.classList.add('correct'); mark.outerHTML=CHECK; }
+      else if(c===btn){ c.classList.add('wrong'); mark.outerHTML=CROSS; }
+      else c.classList.add('dim');
+    });
+
+    if(right){
+      correct++; sRight(); streakW=0; streakC++;
+      if(streakC>=2 && level<3){ level++; streakC=0; pendingMove='up'; }
+    } else {
+      totalWrong++; sWrong(); streakC=0; streakW++;
+      renderStrikes();
+      if(totalWrong<4 && streakW>=2 && level>1){ level--; streakW=0; pendingMove='down'; }
+    }
+    $('progbar').style.width=(answered/20*100)+'%';
+
+    setTimeout(()=>{
+      if(!playing) return;
+      if(totalWrong>=4){ endOut(); return; }
+      if(answered>=20){ endDone(); return; }
+      if(pendingMove==='up'){ toast('Level Up!',LVL_COLOR[level]); sUp(); }
+      else if(pendingMove==='down'){ toast('Level Down',LVL_COLOR[level]); sDown(); }
+      pendingMove=null;
+      nextQuestion();
+    }, right?780:1050);
+  }
+
+  function endOut(){
+    playing=false; stopTimer(); sOut();
+    $('outAns').textContent=answered; $('outCorr').textContent=correct;
+    show('outScreen');
+  }
+  function endDone(){
+    playing=false; stopTimer(); sDone();
+    $('doneTime').textContent=fmt(remainingMs());
+    $('doneCorr').textContent=correct;
+    $('doneLvl').textContent='LEVEL '+level;
+    $('doneAns').textContent=answered;
+    show('doneScreen');
+  }
+  function endTimeUp(){
+    playing=false; stopTimer(); sOut();
+    $('tuAns').textContent=answered; $('tuCorr').textContent=correct;
+    show('timeupScreen');
+  }
+
+  // ============ screen helpers ============
+  const SCREENS=['startScreen','outScreen','doneScreen','timeupScreen'];
+  function hideAllScreens(){SCREENS.forEach(s=>$(s).classList.add('hidden'));}
+  function show(id){hideAllScreens();$(id).classList.remove('hidden');}
+
+  // ============ wiring ============
+  function toMenu(){ ensureAudio(); playing=false; stopTimer(); show('startScreen'); }
+  $('startBtn').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneAgain').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('outRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('tuRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneMenu').addEventListener('click',toMenu);
+  $('outMenu').addEventListener('click',toMenu);
+  $('tuMenu').addEventListener('click',toMenu);
+  // keyboard 1-4 to answer
+  window.addEventListener('keydown',e=>{
+    if(e.target&&e.target.tagName==='INPUT')return;
+    if(playing){
+      const n=parseInt(e.key,10);
+      if(n>=1&&n<=4){const b=$('opts').children[n-1]; if(b)b.click();}
+    }
+  });
+
+  // start on menu
+  renderStrikes();
+  // ---- clock selector ----
+  const TIME_OPTS=[{n:'Chill',ms:180000,l:'3:00'},{n:'Classic',ms:120000,l:'2:00'},{n:'Hard',ms:90000,l:'1:30'}];
+  (function(){ const row=$('timeRow'); if(!row) return;
+    TIME_OPTS.forEach(o=>{ const b=document.createElement('button');
+      b.className='timeopt'+(o.ms===TIME_LIMIT?' sel':''); b.textContent=o.n+' · '+o.l;
+      b.addEventListener('click',()=>{ ensureAudio(); TIME_LIMIT=o.ms;
+        [...row.children].forEach(c=>c.classList.remove('sel')); b.classList.add('sel'); beep(560,0.06,'sine',0.12); });
+      row.appendChild(b); });
+  })();
+})();
+</script>
+</body>
+</html>

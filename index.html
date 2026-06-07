@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Climb — Game Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --ink:#f4f1ff; --mut:#a9a4cf;
+    --bible:#c98ae0; --bibleg:#f2c95c;
+    --leeds:#ffc23d; --leedsb:#3d8fe8;
+    --manu:#ff5d5d; --manug:#ffd75e;
+    --hw:#ff5b9e; --hwg:#ffd75e;
+  }
+  html,body{min-height:100%;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(110% 80% at 85% -10%, rgba(201,138,224,.20), transparent 55%),
+      radial-gradient(90% 70% at 0% 110%, rgba(61,143,232,.16), transparent 55%),
+      radial-gradient(80% 60% at 110% 110%, rgba(255,93,158,.14), transparent 55%),
+      linear-gradient(165deg,#0c0a1e,#161232 60%,#0d1430);
+    background-attachment:fixed;
+    display:flex;flex-direction:column;align-items:center;
+    padding:clamp(28px,7vw,64px) 18px 40px;min-height:100dvh;
+  }
+  /* faint grain/dot texture */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);
+    background-size:22px 22px;}
+
+  header{text-align:center;max-width:680px;margin-bottom:clamp(26px,5vw,44px);
+    animation:rise .7s cubic-bezier(.2,.8,.2,1) both;}
+  .kicker{font-family:'Baloo 2';font-weight:700;letter-spacing:5px;font-size:13px;
+    text-transform:uppercase;color:var(--mut);margin-bottom:10px;}
+  h1{font-family:'Baloo 2';font-weight:800;line-height:.92;font-size:clamp(46px,12vw,92px);
+    background:linear-gradient(110deg,#fff,#d9c8ff 40%,#f2c95c);-webkit-background-clip:text;
+    background-clip:text;color:transparent;letter-spacing:-1px;}
+  .tag{margin-top:14px;color:#cdc7ee;font-weight:600;font-size:clamp(15px,3.8vw,18px);line-height:1.5;}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:16px;width:100%;max-width:680px;}
+  @media(min-width:620px){ .grid{grid-template-columns:1fr 1fr;} }
+
+  .card{position:relative;display:block;text-decoration:none;color:inherit;overflow:hidden;
+    background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:22px 20px 20px;
+    transition:transform .18s cubic-bezier(.2,.8,.2,1),border-color .18s,box-shadow .18s;
+    animation:rise .7s cubic-bezier(.2,.8,.2,1) both;}
+  .card::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;
+    background:linear-gradient(90deg,var(--a),var(--b));}
+  .card::after{content:"";position:absolute;width:160px;height:160px;right:-50px;top:-50px;border-radius:50%;
+    background:radial-gradient(circle,var(--a),transparent 70%);opacity:.18;transition:opacity .18s,transform .18s;}
+  .card:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.22);
+    box-shadow:0 18px 40px rgba(0,0,0,.4);}
+  .card:hover::after{opacity:.4;transform:scale(1.25);}
+  .card:active{transform:translateY(-1px) scale(.99);}
+
+  .badge{display:inline-block;font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:2px;
+    text-transform:uppercase;color:#0e0c1f;background:var(--a);padding:4px 11px;border-radius:30px;margin-bottom:14px;}
+  .card h2{font-family:'Baloo 2';font-weight:800;font-size:clamp(24px,5.4vw,30px);line-height:1;margin-bottom:8px;}
+  .card p{color:#c7c2e6;font-weight:600;font-size:14.5px;line-height:1.45;min-height:42px;}
+  .meta{display:flex;align-items:center;justify-content:space-between;margin-top:16px;}
+  .qn{color:var(--mut);font-weight:700;font-size:12.5px;letter-spacing:.5px;}
+  .play{font-family:'Baloo 2';font-weight:700;font-size:15px;color:var(--a);display:inline-flex;align-items:center;gap:6px;}
+  .play .arr{transition:transform .18s;}
+  .card:hover .play .arr{transform:translateX(4px);}
+
+  .c1{--a:var(--bible);--b:var(--bibleg);animation-delay:.06s;}
+  .c2{--a:var(--leeds);--b:var(--leedsb);animation-delay:.12s;}
+  .c3{--a:var(--manu);--b:var(--manug);animation-delay:.18s;}
+  .c4{--a:var(--hw);--b:var(--hwg);animation-delay:.24s;}
+
+  footer{margin-top:30px;max-width:560px;text-align:center;color:var(--mut);font-weight:600;
+    font-size:13px;line-height:1.6;animation:rise .7s .3s cubic-bezier(.2,.8,.2,1) both;}
+  footer b{color:#cdc7ee;}
+
+  @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+  <header>
+    <div class="kicker">Trivia · Three Levels · Beat the Clock</div>
+    <h1>Quiz Climb</h1>
+    <p class="tag">Four games, one challenge. Answer right to climb the difficulty, slip up and drop back — how far can you get before the clock or your luck runs out?</p>
+  </header>
+
+  <main class="grid">
+    <a class="card c1" href="bible-quiz.html">
+      <span class="badge">Scripture</span>
+      <h2>The Bible</h2>
+      <p>Famous stories, parables, passages and people — from Genesis to Revelation.</p>
+      <div class="meta"><span class="qn">97 questions · 3 levels</span><span class="play">Play <span class="arr">›</span></span></div>
+    </a>
+
+    <a class="card c2" href="leeds-rhinos-quiz.html">
+      <span class="badge">Rugby League</span>
+      <h2>Leeds Rhinos</h2>
+      <p>Headingley legends, Grand Finals and the golden generation.</p>
+      <div class="meta"><span class="qn">97 questions · 3 levels</span><span class="play">Play <span class="arr">›</span></span></div>
+    </a>
+
+    <a class="card c3" href="manutd-quiz.html">
+      <span class="badge">Football</span>
+      <h2>Manchester United</h2>
+      <p>Newton Heath to the Theatre of Dreams — legends, finals and records.</p>
+      <div class="meta"><span class="qn">97 questions · 3 levels</span><span class="play">Play <span class="arr">›</span></span></div>
+    </a>
+
+    <a class="card c4" href="rhousewives-quiz.html">
+      <span class="badge">Reality TV</span>
+      <h2>Real Housewives</h2>
+      <p>Bravo's franchise — taglines, cast feuds and the table flip.</p>
+      <div class="meta"><span class="qn">97 questions · 3 levels</span><span class="play">Play <span class="arr">›</span></span></div>
+    </a>
+  </main>
+
+  <footer>
+    Tap an answer or press <b>1–4</b>. Get two right in a row to climb a level; two wrong drops you back.<br>
+    Pick any game to begin.
+  </footer>
+</body>
+</html>

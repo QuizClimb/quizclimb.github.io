@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Leeds Rhinos Quiz Climb — 20 Questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#0a1428; --bg1:#102a52; --card:#13284c; --card2:#1a3666;
+    --ink:#eef4ff; --mut:#9fb6dd; --line:#2a4a82;
+    --l1:#36c98a; --l2:#ffb52e; --l3:#ff6b8a;
+    --gold:#ffc23d; --right:#36c98a; --wrong:#ff5d7a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(120% 90% at 82% -10%, rgba(255,180,40,.26), transparent 55%),
+      radial-gradient(100% 80% at 0% 110%, rgba(60,120,255,.20), transparent 55%),
+      linear-gradient(160deg,var(--bg0),var(--bg1));
+    display:flex;align-items:center;justify-content:center;min-height:100%;
+    overflow:hidden;user-select:none;touch-action:manipulation;}
+  #app{position:relative;width:100%;max-width:560px;height:100dvh;max-height:760px;
+    display:flex;flex-direction:column;padding:16px;gap:12px;overflow:hidden;}
+  .display{font-family:'Baloo 2',cursive;}
+
+  /* ---------- HUD ---------- */
+  #hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .lvlpill{font-family:'Baloo 2';font-weight:700;font-size:14px;letter-spacing:.5px;
+    padding:6px 14px;border-radius:30px;color:#10142e;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+  .timer{margin-left:auto;font-family:'Baloo 2';font-weight:700;font-size:20px;color:var(--gold);
+    display:flex;align-items:center;gap:6px;}
+  .timer svg{width:17px;height:17px;opacity:.85}
+  .strikes{display:flex;gap:5px;align-items:center;}
+  .strike{width:15px;height:15px;border-radius:50%;border:2px solid var(--line);
+    transition:all .25s;position:relative;}
+  .strike.used{background:var(--wrong);border-color:var(--wrong);box-shadow:0 0 10px rgba(255,93,122,.6);}
+  .progwrap{height:8px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;}
+  .progbar{height:100%;width:0;background:linear-gradient(90deg,var(--l1),var(--gold));
+    border-radius:10px;transition:width .4s cubic-bezier(.4,1.3,.5,1);}
+  .qcount{font-weight:800;color:var(--mut);font-size:13px;letter-spacing:.5px;}
+
+  /* ---------- question ---------- */
+  #qcard{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;min-height:0;}
+  .qbox{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);
+    border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.3);}
+  .qtext{font-family:'Baloo 2';font-weight:700;font-size:clamp(20px,5.4vw,28px);line-height:1.25;}
+  .opts{display:flex;flex-direction:column;gap:11px;}
+  .opt{font-family:'Nunito';font-weight:700;font-size:clamp(16px,4.4vw,19px);color:var(--ink);
+    background:var(--card2);border:2px solid var(--line);border-radius:15px;padding:15px 18px;
+    text-align:left;cursor:pointer;display:flex;align-items:center;gap:13px;
+    transition:transform .08s,background .15s,border-color .15s;}
+  .opt:active{transform:scale(.985);}
+  .opt .key{flex:none;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;font-family:'Baloo 2';font-weight:700;
+    font-size:15px;color:var(--mut);}
+  .opt .txt{flex:1;}
+  .opt .mark{flex:none;width:24px;height:24px;opacity:0;transition:opacity .2s;}
+  .opt.correct{background:rgba(51,201,138,.18);border-color:var(--right);}
+  .opt.correct .key{background:var(--right);color:#08221a;}
+  .opt.correct .mark{opacity:1;}
+  .opt.wrong{background:rgba(255,93,122,.16);border-color:var(--wrong);}
+  .opt.wrong .key{background:var(--wrong);color:#2a0a12;}
+  .opt.wrong .mark{opacity:1;}
+  .opt.dim{opacity:.45;}
+  .opts.locked .opt{cursor:default;}
+
+  /* ---------- toast ---------- */
+  #toast{position:absolute;top:64px;left:50%;transform:translateX(-50%) translateY(-12px);
+    font-family:'Baloo 2';font-weight:800;font-size:17px;padding:9px 20px;border-radius:30px;
+    color:#0e142e;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:8;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- overlays ---------- */
+  .screen{position:absolute;inset:0;background:linear-gradient(160deg,rgba(14,19,48,.97),rgba(27,33,80,.98));
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:26px;gap:16px;z-index:10;overflow-y:auto;}
+  .screen.hidden{display:none;}
+  .big{font-family:'Baloo 2';font-weight:800;font-size:clamp(34px,9vw,56px);line-height:.95;
+    background:linear-gradient(120deg,var(--gold),#ff9e6b);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--mut);font-weight:600;letter-spacing:3px;font-size:13px;text-transform:uppercase;}
+  .lead{font-size:clamp(15px,3.8vw,18px);color:#cdd3ff;font-weight:600;max-width:430px;line-height:1.5;}
+  .rules{text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;
+    padding:16px 18px;max-width:430px;display:flex;flex-direction:column;gap:9px;}
+  .rule{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:#dfe3ff;font-weight:600;line-height:1.35;}
+  .rule .dot{flex:none;width:9px;height:9px;border-radius:50%;margin-top:6px;}
+  button.cta{font-family:'Baloo 2';font-weight:700;font-size:clamp(19px,5vw,23px);color:#10142e;
+    background:linear-gradient(180deg,var(--gold),#f5a93a);border:none;cursor:pointer;
+    padding:14px 44px;border-radius:50px;box-shadow:0 7px 0 #b9801f,0 12px 26px rgba(245,170,60,.4);
+    transition:transform .08s,box-shadow .08s;}
+  button.cta:active{transform:translateY(4px);box-shadow:0 3px 0 #b9801f;}
+  button.cta.blue{background:linear-gradient(180deg,#6fa8ff,#3d7fe8);box-shadow:0 7px 0 #2b5cad,0 12px 26px rgba(60,120,230,.4);color:#fff;}
+  button.cta.blue:active{box-shadow:0 3px 0 #2b5cad;}
+  button.ghost{background:none;border:none;font-family:'Nunito';font-weight:800;color:#8fb6ff;
+    font-size:15px;cursor:pointer;text-decoration:underline;padding:6px;}
+  .statline{font-size:clamp(16px,4vw,20px);color:#cdd3ff;font-weight:700;}
+  .statline b{color:var(--gold);font-size:1.3em;font-family:'Baloo 2';}
+  .timeBig{font-family:'Baloo 2';font-weight:800;font-size:clamp(46px,13vw,76px);color:var(--gold);line-height:1;}
+
+  /* ---------- scoreboard ---------- */
+  .board{width:100%;max-width:440px;background:rgba(255,255,255,.04);border:1px solid var(--line);
+    border-radius:16px;padding:8px;max-height:46vh;overflow-y:auto;}
+  .board h3{font-family:'Baloo 2';font-size:14px;color:var(--gold);letter-spacing:2px;margin:6px 0 8px;}
+  .brow{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:11px;font-weight:700;font-size:15px;}
+  .brow:nth-child(even){background:rgba(255,255,255,.04);}
+  .brow.me{background:rgba(255,215,94,.14);box-shadow:inset 0 0 0 2px rgba(255,215,94,.5);}
+  .brk{width:26px;text-align:center;font-family:'Baloo 2';color:var(--gold);font-weight:800;}
+  .bwho{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bcorr{color:var(--mut);font-size:12.5px;font-weight:700;}
+  .btime{font-family:'Baloo 2';font-weight:800;color:#bfe9d6;}
+  .empty,.loading{color:var(--mut);font-weight:600;padding:16px;font-size:14px;}
+  .namebox{display:flex;gap:9px;width:100%;max-width:380px;}
+  .namebox input{flex:1;font-family:'Nunito';font-weight:700;font-size:17px;color:var(--ink);
+    background:rgba(255,255,255,.06);border:2px solid var(--line);border-radius:14px;padding:12px 15px;
+    text-align:center;outline:none;}
+  .namebox input:focus{border-color:var(--gold);}
+  button.save{font-family:'Baloo 2';font-weight:700;font-size:16px;color:#0e142e;border:none;cursor:pointer;
+    padding:12px 20px;border-radius:14px;background:linear-gradient(180deg,#5fe0a8,#33c98a);
+    box-shadow:0 4px 0 #1f8a5e;white-space:nowrap;}
+  button.save:active{transform:translateY(3px);box-shadow:0 1px 0 #1f8a5e;}
+  .savedok{color:var(--right);font-weight:800;}
+  .hidden{display:none!important;}
+  .timelabel{font-weight:700;color:var(--mut);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:-4px;}
+  .timerow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .timeopt{font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--mut);background:rgba(255,255,255,.05);
+    border:2px solid var(--line);border-radius:30px;padding:8px 16px;cursor:pointer;transition:all .12s;}
+  .timeopt.sel{color:#10142e;background:var(--gold);border-color:var(--gold);}
+  .timeopt:active{transform:scale(.95);}
+  .timer.low{color:var(--wrong);animation:pulse .8s ease-in-out infinite;}
+  .timer.low svg{color:var(--wrong);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  .homelink{display:inline-block;margin-top:6px;font-family:inherit;font-weight:700;font-size:14px;
+    color:var(--mut);text-decoration:none;opacity:.85;transition:opacity .15s;}
+  .homelink:hover{opacity:1;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- live HUD -->
+  <div id="hud">
+    <span class="lvlpill display" id="lvlPill">LEVEL 1</span>
+    <span class="strikes" id="strikes"></span>
+    <span class="timer display"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="timer">0:00</span></span>
+  </div>
+  <div class="progwrap"><div class="progbar" id="progbar"></div></div>
+  <div class="qcount" id="qcount">QUESTION 1 OF 20</div>
+
+  <!-- question -->
+  <div id="qcard">
+    <div class="qbox"><div class="qtext" id="qtext">…</div></div>
+    <div class="opts" id="opts"></div>
+  </div>
+
+  <div id="toast" class="display"></div>
+
+  <!-- START -->
+  <div class="screen" id="startScreen">
+    <div class="sub">Leeds Rhinos Trivia</div>
+    <h1 class="big display">Quiz Climb</h1>
+    <p class="lead">20 questions on the Leeds Rhinos — from Headingley to the golden generation. The better you do, the harder it gets!</p>
+    <div class="rules">
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
+    </div>
+    <div class="timelabel">Choose your clock</div>
+    <div class="timerow" id="timeRow"></div>
+    <button class="cta" id="startBtn">Start Quiz</button>
+    <a class="homelink" href="index.html">‹ All games</a>
+  </div>
+
+  <!-- KNOCKED OUT -->
+  <div class="screen hidden" id="outScreen">
+    <div class="sub" style="color:var(--wrong)">Knocked Out</div>
+    <h1 class="big display" style="background:linear-gradient(120deg,#ff6b8a,#ff9e6b);-webkit-background-clip:text;background-clip:text;">So close!</h1>
+    <p class="lead">You ran out of lives, but you can jump straight back in.</p>
+    <p class="statline">You answered <b id="outAns">0</b> questions<br>and got <b id="outCorr">0</b> right</p>
+    <button class="cta" id="outRetry">Try Again</button>
+    <button class="ghost" id="outMenu">Back to Menu</button>
+  </div>
+
+  <!-- COMPLETED -->
+  <div class="screen hidden" id="doneScreen">
+    <div class="sub">All 20 Complete!</div>
+    <div class="timeBig display" id="doneTime">0:00</div>
+    <p class="statline" style="margin-top:-6px;">left on the clock</p>
+    <p class="statline"><b id="doneCorr">0</b> correct · <b id="doneAns">20</b>/20 answered</p>
+    <p class="statline">reached <b id="doneLvl">LEVEL 1</b></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="cta" id="doneAgain">Play Again</button>
+      <button class="cta blue" id="doneMenu">Menu</button>
+    </div>
+  </div>
+
+  <!-- TIME'S UP -->
+  <div class="screen hidden" id="timeupScreen">
+    <div class="sub" style="color:var(--gold)">Time's Up!</div>
+    <h1 class="big display">Final whistle!</h1>
+    <p class="lead">Your 2 minutes are up — here's how far you climbed.</p>
+    <p class="statline">You answered <b id="tuAns">0</b> questions<br>and got <b id="tuCorr">0</b> right</p>
+    <button class="cta" id="tuRetry">Try Again</button>
+    <button class="ghost" id="tuMenu">Back to Menu</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============ QUESTION BANK (stable, settled facts) ============
+  const BANK={
+    1:[
+      {q:"Leeds Rhinos play which sport?",correct:"Rugby league",wrong:["Football (soccer)","Cricket","Basketball"]},
+      {q:"What are the Rhinos' traditional kit colours?",correct:"Blue and amber",wrong:["Red and white","Green and gold","Black and white"]},
+      {q:"Leeds Rhinos compete in which competition?",correct:"Super League",wrong:["Premier League","The Hundred","Premiership Rugby"]},
+      {q:"What is the club's home stadium called?",correct:"Headingley",wrong:["Old Trafford","Elland Road","Wembley"]},
+      {q:"In which English city are the Rhinos based?",correct:"Leeds",wrong:["Hull","Bradford","Wigan"]},
+      {q:"Which animal gives the club its name and badge?",correct:"A rhinoceros",wrong:["A lion","A bull","An eagle"]},
+      {q:"The Rhinos' biggest end-of-season match is the Super League…?",correct:"Grand Final",wrong:["World Cup","Super Bowl","FA Cup"]},
+      {q:"Which legendary kicker is the club's all-time top points scorer?",correct:"Kevin Sinfield",wrong:["Rob Burrow","Jamie Peacock","Danny McGuire"]},
+      {q:"Leeds Rhinos are based in which English county?",correct:"West Yorkshire",wrong:["Lancashire","Merseyside","Greater London"]},
+      {q:"The historic knockout cup Leeds have won many times is the…?",correct:"Challenge Cup",wrong:["League Cup","Ryder Cup","Davis Cup"]},
+      {q:"In rugby league, how many players are on each team on the field?",correct:"13",wrong:["11","15","7"]},
+      {q:"Headingley is also a famous venue for which other sport?",correct:"Cricket",wrong:["Tennis","Golf","Boxing"]},
+      {q:"The Rhinos' run of success in the 2000s and 2010s is called their golden…?",correct:"Generation",wrong:["Age","Ticket","Decade"]},
+      {q:"Rob Burrow was famous for being one of the sport's…?",correct:"Smallest players",wrong:["Tallest players","Oldest players","Heaviest players"]},
+      {q:"Which Leeds legend was diagnosed with MND and inspired millions before his death in 2024?",correct:"Rob Burrow",wrong:["Kevin Sinfield","Jamie Peacock","Barrie McDermott"]},
+      {q:"Super League is played mainly during which part of the year?",correct:"Summer",wrong:["Winter only","Christmas only","Spring only"]},
+      {q:"What shape is the ball used in rugby league?",correct:"Oval",wrong:["Round","Square","Flat"]},
+      {q:"Leeds' main local rivals, the Bulls, come from which neighbouring city?",correct:"Bradford",wrong:["Liverpool","Newcastle","Sheffield"]},
+      {q:"The Rhinos adopted their name during the launch of which league?",correct:"Super League",wrong:["National League","The Championship","The Ashes"]},
+      {q:"Headingley is shared with which county cricket club?",correct:"Yorkshire",wrong:["Lancashire","Surrey","Kent"]},
+      {q:"How many points is a try worth in rugby league?",correct:"4",wrong:["5","6","3"]},
+      {q:"Kevin Sinfield earned which affectionate nickname?",correct:"Sir Kev",wrong:["The Rhino","The Wall","King Kev"]},
+      {q:"Teams score by carrying the ball over the line for a…?",correct:"Try",wrong:["Goal","Basket","Touchdown"]},
+      {q:"A try plus its conversion is worth how many points in total?",correct:"6",wrong:["4","5","7"]},
+      {q:"Rob Burrow and Kevin Sinfield were long-time teammates at which club?",correct:"Leeds Rhinos",wrong:["Wigan","St Helens","Bradford"]},
+      {q:"Which Leeds legend ran gruelling marathons to raise money for MND?",correct:"Kevin Sinfield",wrong:["Rob Burrow","Jamie Peacock","Danny McGuire"]},
+      {q:"What is the club's one-word nickname?",correct:"Rhinos",wrong:["Bulls","Tigers","Giants"]},
+      {q:"Rugby league matches are split into two…?",correct:"Halves",wrong:["Quarters","Innings","Sets"]},
+      {q:"The team that tops the regular season wins the League Leaders'…?",correct:"Shield",wrong:["Cup","Medal","Bell"]},
+      {q:"Kevin Sinfield was renowned for his accurate…?",correct:"Goal-kicking",wrong:["Throwing","Diving","Refereeing"]},
+      {q:"Which of these is a real rugby league position?",correct:"Hooker",wrong:["Goalkeeper","Pitcher","Quarterback"]},
+      {q:"Each team gets how many tackles before handing over possession?",correct:"Six",wrong:["Four","Three","Ten"]}
+    ],
+    2:[
+      {q:"In which year did the club adopt the 'Rhinos' name?",correct:"1997",wrong:["1990","2005","2012"]},
+      {q:"Kevin Sinfield is Super League's most successful captain, with how many titles as skipper?",correct:"Seven",wrong:["Three","Five","Ten"]},
+      {q:"Rob Burrow mainly played in which position?",correct:"Half-back",wrong:["Prop forward","Second row","Full-back"]},
+      {q:"Kevin Sinfield raised millions for MND by completing a series of extreme…?",correct:"Marathon runs",wrong:["Cycling tours","Swims","Boxing bouts"]},
+      {q:"The World Club Challenge pits Super League's best against the champions of which country?",correct:"Australia",wrong:["New Zealand","France","South Africa"]},
+      {q:"Which Leeds and England forward, nicknamed 'JP', anchored the golden generation?",correct:"Jamie Peacock",wrong:["Danny McGuire","Rob Burrow","Iestyn Harris"]},
+      {q:"Which golden-generation half-back is Leeds' top try-scorer of the Super League era?",correct:"Danny McGuire",wrong:["Rob Burrow","Kevin Sinfield","Jamie Peacock"]},
+      {q:"Leeds were a founding member of which 1895 breakaway that created rugby league?",correct:"The Northern Union",wrong:["The Football League","The RFU","The NRL"]},
+      {q:"How many points is a drop goal worth in rugby league?",correct:"1",wrong:["2","3","4"]},
+      {q:"In which year did Leeds win their most recent Challenge Cup?",correct:"2020",wrong:["2014","2017","2022"]},
+      {q:"Leeds won three Grand Finals in a row — in 2007, 2008 and which year?",correct:"2009",wrong:["2010","2006","2011"]},
+      {q:"Which fearsome front-rower was known to Leeds fans as 'Barrie Mac'?",correct:"Barrie McDermott",wrong:["Jamie Jones-Buchanan","Keith Senior","Kylie Leuluai"]},
+      {q:"Leeds' three World Club Challenge wins came in 2005, 2008 and which year?",correct:"2012",wrong:["2010","2015","2017"]},
+      {q:"The Super League Grand Final is traditionally staged at which stadium?",correct:"Old Trafford",wrong:["Wembley","Headingley","Elland Road"]},
+      {q:"The Challenge Cup final is traditionally played at which stadium?",correct:"Wembley",wrong:["Old Trafford","Headingley","Twickenham"]},
+      {q:"Which one-club man, 'JJB', spent 21 years at Headingley?",correct:"Jamie Jones-Buchanan",wrong:["Danny McGuire","Kevin Sinfield","Rob Burrow"]},
+      {q:"What is Leeds' historic nickname, still used by some fans?",correct:"The Loiners",wrong:["The Lions","The Bulls","The Tigers"]},
+      {q:"In rugby league, a successful goal kick is worth how many points?",correct:"2",wrong:["1","3","4"]},
+      {q:"After switching to rugby union, Kevin Sinfield joined the coaching staff of which national team?",correct:"England",wrong:["Wales","Scotland","Ireland"]},
+      {q:"Funds raised by Burrow and Sinfield helped build a specialist MND care centre in which city?",correct:"Leeds",wrong:["Manchester","London","Bradford"]},
+      {q:"Leeds' fierce West Yorkshire rivals of the late 1990s were the Bradford…?",correct:"Bulls",wrong:["Bears","Broncos","Bisons"]},
+      {q:"How many Super League Grand Finals had Leeds won in total by 2017?",correct:"Eight",wrong:["Five","Three","Eleven"]},
+      {q:"Which 1930s winger, the 'Toowoomba Ghost', is Leeds' all-time record try-scorer with 392?",correct:"Eric Harris",wrong:["Lewis Jones","John Atkinson","Garry Schofield"]},
+      {q:"Which Welsh dual-code great steered Leeds to their first Championship in 1961?",correct:"Lewis Jones",wrong:["Iestyn Harris","Garry Schofield","Kevin Sinfield"]},
+      {q:"Which try-scoring centre was a world-record signing for Leeds in 1987 and won the Golden Boot?",correct:"Garry Schofield",wrong:["Ellery Hanley","John Holmes","Barrie McDermott"]},
+      {q:"Which coach led Leeds to four Super League titles, including the 2015 treble?",correct:"Brian McDermott",wrong:["Tony Smith","Daryl Powell","Brian McClennan"]},
+      {q:"Leeds' 2015 'treble' was the Grand Final, the Challenge Cup and which league prize?",correct:"The League Leaders' Shield",wrong:["The World Club Challenge","The Ashes","The Magic Weekend"]},
+      {q:"Which Great Britain great and Hall of Famer had a spell at Leeds in the early 1990s?",correct:"Ellery Hanley",wrong:["Garry Schofield","John Holmes","Lewis Jones"]},
+      {q:"Leeds beat which Australian club to win the 2008 World Club Challenge?",correct:"Melbourne Storm",wrong:["Brisbane Broncos","Sydney Roosters","Wests Tigers"]},
+      {q:"Which goal-kicking fullback was Man of Steel in Leeds' 2015 treble season?",correct:"Zak Hardaker",wrong:["Kevin Sinfield","Danny McGuire","Rob Burrow"]},
+      {q:"The 2015 Grand Final was the farewell game for Sinfield, Kylie Leuluai and which legend?",correct:"Jamie Peacock",wrong:["Danny McGuire","Rob Burrow","Iestyn Harris"]},
+      {q:"The sport's oldest knockout cup, won by Leeds 14 times, is the…?",correct:"The Challenge Cup",wrong:["The League Cup","The Magic Weekend","The Nines"]}
+    ],
+    3:[
+      {q:"In which year did Leeds win their first Super League Grand Final?",correct:"2004",wrong:["1998","2001","2007"]},
+      {q:"Kevin Sinfield's career points total for Leeds was closest to…?",correct:"3,967",wrong:["2,967","4,967","1,967"]},
+      {q:"The Northern Union, which Leeds helped found, was formed in which year?",correct:"1895",wrong:["1888","1907","1922"]},
+      {q:"The 1996 takeover that led to the Rhinos rebrand was led by Paul Caddick and which partner?",correct:"Gary Hetherington",wrong:["Gary Lineker","Brian McDermott","Tony Smith"]},
+      {q:"In which year did Rob Burrow make his Leeds debut?",correct:"2001",wrong:["1997","2005","1999"]},
+      {q:"Kevin Sinfield made how many appearances for Leeds (a Super League-era club record)?",correct:"Over 500",wrong:["Over 300","Over 700","Over 900"]},
+      {q:"The original 1870 club was known as Leeds St…?",correct:"John's",wrong:["James's","Jude's","Joseph's"]},
+      {q:"The Super League Grand Final has been staged at Old Trafford since which year?",correct:"1998",wrong:["1996","2002","2010"]},
+      {q:"Leeds' 2020 Challenge Cup final win was unusual because the final was played…?",correct:"Behind closed doors",wrong:["In Australia","On Christmas Day","At Headingley"]},
+      {q:"The World Club Challenge is contested against the champions of which competition?",correct:"The NRL",wrong:["The AFL","The Top 14","Super Rugby"]},
+      {q:"Sinfield's '7 marathons in 7 days' challenge supported which cause linked to Rob Burrow?",correct:"Motor neurone disease",wrong:["Cancer research","Heart disease","Diabetes"]},
+      {q:"Which dual-code goal-kicker won Man of Steel in 1998 while at Leeds?",correct:"Iestyn Harris",wrong:["Kevin Sinfield","Danny McGuire","Lewis Jones"]},
+      {q:"Kevin Sinfield made his Leeds debut in 1997 at what age?",correct:"16",wrong:["18","21","23"]},
+      {q:"How many League Leaders' Shields did Kevin Sinfield win as captain?",correct:"Three",wrong:["One","Five","Seven"]},
+      {q:"Which Challenge Cup did Leeds win immediately before their 2020 triumph?",correct:"2015",wrong:["2014","2017","2012"]},
+      {q:"Jamie Jones-Buchanan ('JJB') won how many Grand Finals across his career?",correct:"Eight",wrong:["Five","Three","Ten"]},
+      {q:"In 2012, Kevin Sinfield became the club's all-time leading…?",correct:"Points scorer",wrong:["Try scorer","Appearance maker","Goal kicker"]},
+      {q:"The 1895 breakaway clubs split away from which governing body?",correct:"The RFU (rugby union)",wrong:["The FA","The ECB","The IOC"]},
+      {q:"Leeds' 'Loiner' nickname is an old term for a person from which place?",correct:"Leeds",wrong:["Bradford","Hull","York"]},
+      {q:"Leeds' run of three straight Grand Final wins came in which years?",correct:"2007, 2008, 2009",wrong:["2004–2006","2011–2013","2015–2017"]},
+      {q:"Who coached Leeds to their first Super League Grand Final win in 2004?",correct:"Tony Smith",wrong:["Brian McDermott","Daryl Powell","Brian McClennan"]},
+      {q:"Which coach appointed Kevin Sinfield as Leeds captain back in 2003?",correct:"Daryl Powell",wrong:["Tony Smith","Brian McDermott","Brian McClennan"]},
+      {q:"How many tries did record-holder Eric Harris score for Leeds in the 1930s?",correct:"392",wrong:["292","492","192"]},
+      {q:"Lewis Jones, signed in 1952, commanded a then-record transfer fee of how much?",correct:"£6,000",wrong:["£600","£60,000","£600,000"]},
+      {q:"In which year did Leeds win their first-ever league Championship?",correct:"1961",wrong:["1955","1969","1972"]},
+      {q:"Garry Schofield became a world-record signing for Leeds in which year?",correct:"1987",wrong:["1980","1992","1995"]},
+      {q:"Brian McDermott led Leeds to how many Super League titles?",correct:"Four",wrong:["Two","Six","One"]},
+      {q:"Before Super League, Leeds won the Championship in 1961, 1969 and which year?",correct:"1972",wrong:["1975","1980","1958"]},
+      {q:"Which legend holds Leeds' all-time appearance record with around 625 games?",correct:"John Holmes",wrong:["Lewis Jones","Garry Schofield","Syd Hynes"]},
+      {q:"Which legend, the '1,000th player to wear a Leeds shirt', became the club's first player-coach?",correct:"Syd Hynes",wrong:["John Holmes","Lewis Jones","David Ward"]},
+      {q:"In the 2015 Grand Final, who kicked the match-winning conversion after Josh Walters' late try?",correct:"Kevin Sinfield",wrong:["Danny McGuire","Zak Hardaker","Rob Burrow"]},
+      {q:"Record try-scorer Eric Harris was known by which nickname?",correct:"The Toowoomba Ghost",wrong:["The Welsh Wizard","King Kev","The Loiner"]},
+      {q:"Leeds won which trophy at the old Wembley in 1999?",correct:"The Challenge Cup",wrong:["The Grand Final","The World Club Challenge","The League Leaders' Shield"]}
+    ]
+  };
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3')};
+  function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  const KEYS=['A','B','C','D'];
+  const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CROSS='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#ff5d7a" stroke-width="3" stroke-linecap="round"/></svg>';
+
+  // ============ audio ============
+  let actx=null;
+  function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+  function beep(f,d=0.12,type='sine',vol=0.16){if(!actx)return;const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=f;o.connect(g);g.connect(actx.destination);const t=actx.currentTime;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+d);
+    o.start(t);o.stop(t+d+0.02);}
+  const sRight=()=>{beep(660,0.09,'sine',0.16);setTimeout(()=>beep(990,0.11,'sine',0.14),80);};
+  const sWrong=()=>{beep(200,0.22,'sawtooth',0.15);};
+  const sUp=()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.12,'triangle',0.15),i*70));};
+  const sDown=()=>{[523,415,330].forEach((f,i)=>setTimeout(()=>beep(f,0.13,'triangle',0.14),i*80));};
+  const sDone=()=>{[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,0.14,'sine',0.16),i*90));};
+  const sOut=()=>{[330,262,196].forEach((f,i)=>setTimeout(()=>beep(f,0.22,'triangle',0.15),i*130));};
+
+  // ============ state ============
+  let level,answered,correct,totalWrong,streakC,streakW,current,opts,locked,pendingMove;
+  let startT=0,timerId=null;
+
+  const $=id=>document.getElementById(id);
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  let queues,ptr;
+
+  function startGame(){
+    level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3])}; ptr={1:0,2:0,3:0};
+    hideAllScreens();
+    playing=true; startT=performance.now(); runTimer();
+    renderStrikes(); nextQuestion();
+  }
+
+  let TIME_LIMIT=120000;   // countdown length, set by the clock selector
+  let playing=false;
+  function remainingMs(){ return Math.max(0, TIME_LIMIT-(performance.now()-startT)); }
+  function tickTimer(){
+    const rem=remainingMs();
+    const el=$('timer'); el.textContent=fmt(rem);
+    const w=el.parentElement;
+    if(rem<=15000) w.classList.add('low'); else w.classList.remove('low');
+    if(rem<=0 && playing){ stopTimer(); endTimeUp(); }
+  }
+  function runTimer(){ clearInterval(timerId); tickTimer(); timerId=setInterval(tickTimer,150); }
+  function stopTimer(){ clearInterval(timerId); }
+  function fmt(ms){const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+
+  function drawQuestion(){
+    const pool=queues[level];
+    if(ptr[level]>=pool.length){ queues[level]=shuffle(BANK[level]); ptr[level]=0; }
+    return queues[level][ptr[level]++];
+  }
+
+  function nextQuestion(){
+    current=drawQuestion();
+    opts=shuffle([current.correct,...current.wrong]);
+    // HUD
+    $('lvlPill').textContent=LVL_NAMES[level];
+    $('lvlPill').style.background=LVL_COLOR[level];
+    $('qcount').textContent='QUESTION '+(answered+1)+' OF 20';
+    $('progbar').style.width=(answered/20*100)+'%';
+    $('qtext').textContent=current.q;
+    const box=$('opts'); box.className='opts'; box.innerHTML='';
+    opts.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='opt';
+      b.innerHTML='<span class="key">'+KEYS[i]+'</span><span class="txt">'+o+'</span><span style="width:24px;flex:none"></span>';
+      b.addEventListener('click',()=>answer(o,b));
+      box.appendChild(b);
+    });
+    locked=false;
+  }
+
+  function renderStrikes(){
+    const el=$('strikes'); el.innerHTML='';
+    for(let i=0;i<4;i++){const s=document.createElement('span');s.className='strike'+(i<totalWrong?' used':'');el.appendChild(s);}
+  }
+
+  function toast(msg,color){
+    const t=$('toast'); t.textContent=msg; t.style.background=color; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),1100);
+  }
+
+  function answer(choice,btn){
+    if(locked) return; locked=true;
+    const right=(choice===current.correct);
+    answered++;
+    const box=$('opts'); box.classList.add('locked');
+    // reveal
+    [...box.children].forEach(c=>{
+      const label=c.querySelector('.txt').textContent;
+      const mark=c.lastElementChild;
+      if(label===current.correct){ c.classList.add('correct'); mark.outerHTML=CHECK; }
+      else if(c===btn){ c.classList.add('wrong'); mark.outerHTML=CROSS; }
+      else c.classList.add('dim');
+    });
+
+    if(right){
+      correct++; sRight(); streakW=0; streakC++;
+      if(streakC>=2 && level<3){ level++; streakC=0; pendingMove='up'; }
+    } else {
+      totalWrong++; sWrong(); streakC=0; streakW++;
+      renderStrikes();
+      if(totalWrong<4 && streakW>=2 && level>1){ level--; streakW=0; pendingMove='down'; }
+    }
+    $('progbar').style.width=(answered/20*100)+'%';
+
+    setTimeout(()=>{
+      if(!playing) return;
+      if(totalWrong>=4){ endOut(); return; }
+      if(answered>=20){ endDone(); return; }
+      if(pendingMove==='up'){ toast('Level Up!',LVL_COLOR[level]); sUp(); }
+      else if(pendingMove==='down'){ toast('Level Down',LVL_COLOR[level]); sDown(); }
+      pendingMove=null;
+      nextQuestion();
+    }, right?780:1050);
+  }
+
+  function endOut(){
+    playing=false; stopTimer(); sOut();
+    $('outAns').textContent=answered; $('outCorr').textContent=correct;
+    show('outScreen');
+  }
+  function endDone(){
+    playing=false; stopTimer(); sDone();
+    $('doneTime').textContent=fmt(remainingMs());
+    $('doneCorr').textContent=correct;
+    $('doneLvl').textContent='LEVEL '+level;
+    $('doneAns').textContent=answered;
+    show('doneScreen');
+  }
+  function endTimeUp(){
+    playing=false; stopTimer(); sOut();
+    $('tuAns').textContent=answered; $('tuCorr').textContent=correct;
+    show('timeupScreen');
+  }
+
+  // ============ screen helpers ============
+  const SCREENS=['startScreen','outScreen','doneScreen','timeupScreen'];
+  function hideAllScreens(){SCREENS.forEach(s=>$(s).classList.add('hidden'));}
+  function show(id){hideAllScreens();$(id).classList.remove('hidden');}
+
+  // ============ wiring ============
+  function toMenu(){ ensureAudio(); playing=false; stopTimer(); show('startScreen'); }
+  $('startBtn').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneAgain').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('outRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('tuRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneMenu').addEventListener('click',toMenu);
+  $('outMenu').addEventListener('click',toMenu);
+  $('tuMenu').addEventListener('click',toMenu);
+  // keyboard 1-4 to answer
+  window.addEventListener('keydown',e=>{
+    if(e.target&&e.target.tagName==='INPUT')return;
+    if(playing){
+      const n=parseInt(e.key,10);
+      if(n>=1&&n<=4){const b=$('opts').children[n-1]; if(b)b.click();}
+    }
+  });
+
+  // start on menu
+  renderStrikes();
+  // ---- clock selector ----
+  const TIME_OPTS=[{n:'Chill',ms:180000,l:'3:00'},{n:'Classic',ms:120000,l:'2:00'},{n:'Hard',ms:90000,l:'1:30'}];
+  (function(){ const row=$('timeRow'); if(!row) return;
+    TIME_OPTS.forEach(o=>{ const b=document.createElement('button');
+      b.className='timeopt'+(o.ms===TIME_LIMIT?' sel':''); b.textContent=o.n+' · '+o.l;
+      b.addEventListener('click',()=>{ ensureAudio(); TIME_LIMIT=o.ms;
+        [...row.children].forEach(c=>c.classList.remove('sel')); b.classList.add('sel'); beep(560,0.06,'sine',0.12); });
+      row.appendChild(b); });
+  })();
+})();
+</script>
+</body>
+</html>
