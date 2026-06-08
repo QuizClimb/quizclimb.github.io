@@ -11,7 +11,7 @@
   :root{
     --bg0:#0a1428; --bg1:#102a52; --card:#13284c; --card2:#1a3666;
     --ink:#eef4ff; --mut:#9fb6dd; --line:#2a4a82;
-    --l1:#36c98a; --l2:#ffb52e; --l3:#ff6b8a;
+    --l1:#36c98a; --l2:#ffb52e; --l3:#ff6b8a; --l4:#6aa8ff;
     --gold:#ffc23d; --right:#36c98a; --wrong:#ff5d7a;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -175,9 +175,9 @@
   <div class="screen" id="startScreen">
     <div class="sub">Leeds Rhinos Trivia</div>
     <h1 class="big display">Quiz Climb</h1>
-    <p class="lead">20 questions on the Leeds Rhinos — from Headingley to the golden generation. The better you do, the harder it gets!</p>
+    <p class="lead">20 questions on the Leeds Rhinos — from Headingley to the golden generation. Four tiers now — climb through Easy, Medium and Hard all the way to the new Legends tier!</p>
     <div class="rules">
-      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3 → Legends).</span></div>
       <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
       <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
       <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
@@ -350,10 +350,42 @@
       {q:"In the 2015 Grand Final, who kicked the match-winning conversion after Josh Walters' late try?",correct:"Kevin Sinfield",wrong:["Danny McGuire","Zak Hardaker","Rob Burrow"]},
       {q:"Record try-scorer Eric Harris was known by which nickname?",correct:"The Toowoomba Ghost",wrong:["The Welsh Wizard","King Kev","The Loiner"]},
       {q:"Leeds won which trophy at the old Wembley in 1999?",correct:"The Challenge Cup",wrong:["The Grand Final","The World Club Challenge","The League Leaders' Shield"]}
+    ],
+    4:[
+      {q:"In which year did Leeds adopt the name “Rhinos” for the Super League era?",correct:"1997",wrong:["1995","1999","2002"]},
+      {q:"In which English county is the Rhinos' Headingley home ground?",correct:"West Yorkshire",wrong:["Lancashire","Merseyside","South Yorkshire"]},
+      {q:"How many Super League Grand Finals had Leeds won by the end of 2017?",correct:"Eight",wrong:["Six","Five","Ten"]},
+      {q:"Who captained Leeds to their first Super League Grand Final win, in 2004?",correct:"Kevin Sinfield",wrong:["Danny McGuire","Jamie Peacock","Rob Burrow"]},
+      {q:"Which half-back scored the winning try in Leeds' 2004 Grand Final triumph?",correct:"Danny McGuire",wrong:["Rob Burrow","Kevin Sinfield","Keith Senior"]},
+      {q:"Who is Leeds Rhinos' and Super League's all-time record points scorer?",correct:"Kevin Sinfield",wrong:["Danny McGuire","Rob Burrow","Iestyn Harris"]},
+      {q:"Rob Burrow wore which iconic squad number for the Rhinos?",correct:"7",wrong:["6","9","13"]},
+      {q:"Rob Burrow campaigned to raise awareness of which illness?",correct:"Motor neurone disease",wrong:["Parkinson's disease","Multiple sclerosis","Dementia"]},
+      {q:"Which Leeds stand-off became the first player to score 200 Super League tries?",correct:"Danny McGuire",wrong:["Ryan Hall","Keith Senior","Kallum Watkins"]},
+      {q:"Leeds' 2015 treble was the Grand Final, the Challenge Cup and which trophy?",correct:"The League Leaders' Shield",wrong:["The World Club Challenge","The Lance Todd Trophy","The Ashes"]},
+      {q:"Whom did Leeds beat in the 2015 Grand Final, Kevin Sinfield's final game?",correct:"Wigan Warriors",wrong:["St Helens","Warrington Wolves","Bradford Bulls"]},
+      {q:"Which side beat Leeds in the 2005 Grand Final, Sinfield's only final defeat?",correct:"Bradford Bulls",wrong:["St Helens","Wigan Warriors","Warrington Wolves"]},
+      {q:"In the 2017 Grand Final, Leeds beat which Yorkshire rivals 24-6?",correct:"Castleford Tigers",wrong:["Wakefield Trinity","Hull FC","Bradford Bulls"]},
+      {q:"Which one-club forward, nicknamed “JJB,” gave Leeds 20-plus seasons of service?",correct:"Jamie Jones-Buchanan",wrong:["Jamie Peacock","Barrie McDermott","Adrian Morley"]},
+      {q:"The World Club Challenge pits the Super League champions against the champions of which league?",correct:"The NRL",wrong:["The French Elite","Rugby union's Premiership","The Championship"]},
+      {q:"Which prop joined Leeds from Bradford in 2006 and co-captained the Rhinos?",correct:"Jamie Peacock",wrong:["Adrian Morley","Kylie Leuluai","Ryan Bailey"]},
+      {q:"Who became the second man to captain Leeds to Grand Final glory, in 2017?",correct:"Danny McGuire",wrong:["Jamie Peacock","Kallum Watkins","Stevie Ward"]},
+      {q:"Which Leeds winger eventually broke McGuire's Super League try record?",correct:"Ryan Hall",wrong:["Tom Briscoe","Ben Jones-Bishop","Kallum Watkins"]},
+      {q:"Leeds Rhinos' traditional colours are blue and what?",correct:"Amber",wrong:["Gold","White","Red"]},
+      {q:"Which coach led Leeds to the Grand Final titles of 2015 and 2017?",correct:"Brian McDermott",wrong:["Tony Smith","Daryl Powell","Brian McClennan"]},
+      {q:"Under which head coach did Leeds win their first Super League title in 2004?",correct:"Tony Smith",wrong:["Brian McDermott","Daryl Powell","Brian McClennan"]},
+      {q:"The Harry Sunderland Trophy is awarded to the man of the match in which game?",correct:"The Super League Grand Final",wrong:["The Challenge Cup final","The World Club Challenge","Magic Weekend"]},
+      {q:"Roughly how many points did Kevin Sinfield score in his career?",correct:"Nearly 4,000",wrong:["About 2,000","Around 6,000","About 1,000"]},
+      {q:"Which prop won six Grand Finals at Leeds between 2007 and 2015?",correct:"Kylie Leuluai",wrong:["Adrian Morley","Jamie Peacock","Ryan Bailey"]},
+      {q:"Leeds were founder members of the breakaway Northern Union in which year?",correct:"1895",wrong:["1890","1907","1922"]},
+      {q:"Which trophy did Leeds win at Wembley in 2020 with Sinfield as director of rugby?",correct:"The Challenge Cup",wrong:["The Grand Final","The World Club Challenge","The League Leaders' Shield"]},
+      {q:"Which teammate joined Rob Burrow as the face of a major MND fundraising effort?",correct:"Kevin Sinfield",wrong:["Danny McGuire","Jamie Peacock","Kallum Watkins"]},
+      {q:"How many Super League titles did Kevin Sinfield win as Leeds captain?",correct:"Seven",wrong:["Five","Eight","Three"]},
+      {q:"Which academy-raised centre won the 2015 treble and later captained Leeds?",correct:"Kallum Watkins",wrong:["Joel Moon","Zak Hardaker","Tom Briscoe"]},
+      {q:"Danny McGuire scored a record 39 tries in which title-winning season?",correct:"2004",wrong:["2007","2011","2015"]}
     ]
   };
-  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD"};
-  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3')};
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD",4:"LEVEL 4 · LEGENDS"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3'),4:getCSS('--l4')};
   function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
   const KEYS=['A','B','C','D'];
   const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -383,7 +415,7 @@
 
   function startGame(){
     level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
-    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3])}; ptr={1:0,2:0,3:0};
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3]),4:shuffle(BANK[4])}; ptr={1:0,2:0,3:0,4:0};
     hideAllScreens();
     playing=true; startT=performance.now(); runTimer();
     renderStrikes(); nextQuestion();
@@ -454,7 +486,7 @@
 
     if(right){
       correct++; sRight(); streakW=0; streakC++;
-      if(streakC>=2 && level<3){ level++; streakC=0; pendingMove='up'; }
+      if(streakC>=2 && level<4){ level++; streakC=0; pendingMove='up'; }
     } else {
       totalWrong++; sWrong(); streakC=0; streakW++;
       renderStrikes();

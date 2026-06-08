@@ -11,7 +11,7 @@
   :root{
     --bg0:#160f2e; --bg1:#241a4d; --card:#221a45; --card2:#2c2356;
     --ink:#f3eeff; --mut:#b3a6d6; --line:#3d3470;
-    --l1:#36c98a; --l2:#f2c95c; --l3:#c98ae0;
+    --l1:#36c98a; --l2:#f2c95c; --l3:#c98ae0; --l4:#5ad1ff;
     --gold:#f2c95c; --right:#36c98a; --wrong:#ff5d8a;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -175,9 +175,9 @@
   <div class="screen" id="startScreen">
     <div class="sub">Bible Trivia</div>
     <h1 class="big display">Quiz Climb</h1>
-    <p class="lead">20 questions on the Bible — its best-known stories, parables, passages and people. The better you do, the harder it gets!</p>
+    <p class="lead">20 questions on the Bible — its best-known stories, parables, passages and people. Four tiers now — climb through Easy, Medium and Hard all the way to the new Legends tier!</p>
     <div class="rules">
-      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3 → Legends).</span></div>
       <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
       <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
       <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
@@ -350,10 +350,43 @@
       {q:"Which apostle, once named Saul, became the great missionary to the Gentiles?",correct:"Paul",wrong:["Peter","Barnabas","Timothy"]},
       {q:"How old was Methuselah, the longest-lived man in the Bible, said to be?",correct:"969",wrong:["365","777","1,000"]},
       {q:"After feeding the 5,000, how many baskets of leftovers were gathered?",correct:"Twelve",wrong:["Seven","Five","Three"]}
+    ],
+    4:[
+      {q:"In what language was most of the Old Testament originally written?",correct:"Hebrew",wrong:["Greek","Aramaic","Latin"]},
+      {q:"The shortest verse in the King James Bible, “Jesus wept,” is in which Gospel?",correct:"John",wrong:["Matthew","Mark","Luke"]},
+      {q:"Who succeeded Moses to lead Israel into the Promised Land?",correct:"Joshua",wrong:["Aaron","Caleb","Gideon"]},
+      {q:"Which book of the Bible never once mentions God by name?",correct:"Esther",wrong:["Ruth","Job","Jonah"]},
+      {q:"The mysterious “writing on the wall” appeared at whose feast in Babylon?",correct:"Belshazzar",wrong:["Nebuchadnezzar","Darius","Cyrus"]},
+      {q:"Methuselah, the longest-lived man, was the grandfather of which ark-builder?",correct:"Noah",wrong:["Abraham","Enoch","Lot"]},
+      {q:"Who interpreted Pharaoh's dreams of seven fat and seven lean cows?",correct:"Joseph",wrong:["Daniel","Moses","Aaron"]},
+      {q:"The Ten Commandments are recorded in Exodus and which other book?",correct:"Deuteronomy",wrong:["Leviticus","Numbers","Genesis"]},
+      {q:"Which prophet was told to marry Gomer, an unfaithful wife, as a living parable?",correct:"Hosea",wrong:["Amos","Joel","Micah"]},
+      {q:"Goliath was a champion of which people?",correct:"The Philistines",wrong:["The Amalekites","The Moabites","The Canaanites"]},
+      {q:"How many days had Lazarus been dead before Jesus raised him?",correct:"Four",wrong:["Three","Two","Seven"]},
+      {q:"On which island was Paul shipwrecked and bitten by a snake?",correct:"Malta",wrong:["Cyprus","Crete","Patmos"]},
+      {q:"Which Roman governor sentenced Jesus to crucifixion?",correct:"Pontius Pilate",wrong:["Herod Antipas","Felix","Festus"]},
+      {q:"In which garden did Jesus pray on the night of his arrest?",correct:"Gethsemane",wrong:["Eden","Bethany","Siloam"]},
+      {q:"“Golgotha,” the site of the crucifixion, means what?",correct:"The place of the skull",wrong:["The holy hill","The garden tomb","The high place"]},
+      {q:"Which Gospel writer is traditionally described as a physician?",correct:"Luke",wrong:["Matthew","Mark","John"]},
+      {q:"How many books make up the Pentateuch (the Torah)?",correct:"Five",wrong:["Four","Seven","Ten"]},
+      {q:"Who was the mother of John the Baptist?",correct:"Elizabeth",wrong:["Mary","Anna","Hannah"]},
+      {q:"Which judge of Israel was betrayed by Delilah?",correct:"Samson",wrong:["Gideon","Ehud","Samuel"]},
+      {q:"The three Hebrews in the fiery furnace were Shadrach, Meshach and …?",correct:"Abednego",wrong:["Azariah","Mishael","Daniel"]},
+      {q:"What was the first of the ten plagues God sent upon Egypt?",correct:"Water turned to blood",wrong:["Locusts","Frogs","Darkness"]},
+      {q:"How was the prophet Elijah said to be taken up to heaven?",correct:"In a chariot of fire",wrong:["On eagle's wings","In a great cloud","In a blinding light"]},
+      {q:"Who is traditionally credited with writing most of the New Testament letters?",correct:"Paul",wrong:["Peter","John","James"]},
+      {q:"The Sermon on the Mount opens with which set of blessings?",correct:"The Beatitudes",wrong:["The Psalms","The Proverbs","The Parables"]},
+      {q:"What is the last book of the Old Testament in the Protestant order?",correct:"Malachi",wrong:["Zechariah","Nehemiah","Joel"]},
+      {q:"In Hebrew tradition, Genesis is named “Bereshit,” meaning roughly what?",correct:"In the beginning",wrong:["The creation","The first law","The covenant"]},
+      {q:"Which apostle is remembered for doubting until he saw Jesus's wounds?",correct:"Thomas",wrong:["Philip","Bartholomew","Thaddeus"]},
+      {q:"How many sons did Jacob have, the fathers of the tribes of Israel?",correct:"Twelve",wrong:["Ten","Seven","Thirteen"]},
+      {q:"King Solomon was renowned for building what in Jerusalem?",correct:"The Temple",wrong:["The city walls","The tabernacle","The royal palace"]},
+      {q:"On the road to which town did two disciples meet the risen Jesus?",correct:"Emmaus",wrong:["Bethlehem","Jericho","Capernaum"]},
+      {q:"Which sea did the Israelites cross as they fled from Egypt?",correct:"The Red Sea",wrong:["The Dead Sea","The Sea of Galilee","The Mediterranean"]}
     ]
   };
-  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD"};
-  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3')};
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD",4:"LEVEL 4 · LEGENDS"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3'),4:getCSS('--l4')};
   function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
   const KEYS=['A','B','C','D'];
   const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -383,7 +416,7 @@
 
   function startGame(){
     level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
-    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3])}; ptr={1:0,2:0,3:0};
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3]),4:shuffle(BANK[4])}; ptr={1:0,2:0,3:0,4:0};
     hideAllScreens();
     playing=true; startT=performance.now(); runTimer();
     renderStrikes(); nextQuestion();
@@ -454,7 +487,7 @@
 
     if(right){
       correct++; sRight(); streakW=0; streakC++;
-      if(streakC>=2 && level<3){ level++; streakC=0; pendingMove='up'; }
+      if(streakC>=2 && level<4){ level++; streakC=0; pendingMove='up'; }
     } else {
       totalWrong++; sWrong(); streakC=0; streakW++;
       renderStrikes();

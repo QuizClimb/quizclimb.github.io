@@ -11,7 +11,7 @@
   :root{
     --bg0:#160a1d; --bg1:#2c1233; --card:#2a1530; --card2:#371a40;
     --ink:#fbeeff; --mut:#c39bd0; --line:#522b5c;
-    --l1:#36c98a; --l2:#f6b73c; --l3:#ff4f8b;
+    --l1:#36c98a; --l2:#f6b73c; --l3:#ff4f8b; --l4:#c77dff;
     --gold:#ffd75e; --right:#36c98a; --wrong:#ff4f7e;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -175,9 +175,9 @@
   <div class="screen" id="startScreen">
     <div class="sub">Real Housewives Trivia</div>
     <h1 class="big display">Quiz Climb</h1>
-    <p class="lead">20 questions on Bravo's Real Housewives — from taglines to table flips. The better you do, the harder it gets!</p>
+    <p class="lead">20 questions on Bravo's Real Housewives — from taglines to table flips. Four tiers now — climb through Easy, Medium and Hard all the way to the new Legends tier!</p>
     <div class="rules">
-      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3 → Legends).</span></div>
       <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
       <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
       <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
@@ -350,10 +350,42 @@
       {"q":"The Salahis crashed a White House state dinner during which president's term?","correct":"Barack Obama","wrong":["George W. Bush","Bill Clinton","Donald Trump"]},
       {"q":"Which RHOSLC star drew headlines for marrying her late grandmother's husband?","correct":"Mary Cosby","wrong":["Heather Gay","Lisa Barlow","Whitney Rose"]},
       {"q":"In which year did the Real Housewives of Atlanta first premiere?","correct":"2008","wrong":["2006","2010","2012"]}
+    ],
+    4:[
+      {q:"The Real Housewives franchise began in 2006 with which city?",correct:"Orange County",wrong:["New York City","Atlanta","Beverly Hills"]},
+      {q:"Who is the producer widely credited as the creator of the franchise?",correct:"Andy Cohen",wrong:["Ryan Seacrest","Mark Burnett","Lorne Michaels"]},
+      {q:"The iconic Season 1 table flip was performed by which New Jersey housewife?",correct:"Teresa Giudice",wrong:["Caroline Manzo","Dina Manzo","Jacqueline Laurita"]},
+      {q:"Teresa Giudice's table flip was aimed at which castmate?",correct:"Danielle Staub",wrong:["Melissa Gorga","Jacqueline Laurita","Kim DePaola"]},
+      {q:"Whose Beverly Hills tagline is “I'm an enigma, wrapped in a riddle and cash”?",correct:"Erika Jayne",wrong:["Lisa Rinna","Dorit Kemsley","Kyle Richards"]},
+      {q:"“I used to flip tables, now I'm turning them” is whose later tagline?",correct:"Teresa Giudice",wrong:["NeNe Leakes","Bethenny Frankel","Caroline Manzo"]},
+      {q:"Which New York housewife launched the Skinnygirl cocktail brand?",correct:"Bethenny Frankel",wrong:["Ramona Singer","LuAnn de Lesseps","Sonja Morgan"]},
+      {q:"Which Beverly Hills star headlined the spin-off “Vanderpump Rules”?",correct:"Lisa Vanderpump",wrong:["Kyle Richards","Camille Grammer","Brandi Glanville"]},
+      {q:"“Vanderpump Rules” is set chiefly in which of Lisa's restaurants?",correct:"SUR",wrong:["Pump","Villa Blanca","TomTom"]},
+      {q:"Which Atlanta original is known for the catchphrase “I said what I said”?",correct:"NeNe Leakes",wrong:["Kandi Burruss","Kenya Moore","Phaedra Parks"]},
+      {q:"Former beauty queen Kenya Moore coined which “fabulous” catchphrase?",correct:"Gone with the Wind fabulous",wrong:["Forever-young fabulous","Diamond fabulous","Beauty-queen fabulous"]},
+      {q:"Which New York “Countess” recorded the song “Money Can't Buy You Class”?",correct:"LuAnn de Lesseps",wrong:["Ramona Singer","Sonja Morgan","Dorinda Medley"]},
+      {q:"Which New York housewife is linked to “Turtle Time” and Pinot Grigio?",correct:"Ramona Singer",wrong:["Sonja Morgan","Bethenny Frankel","Carole Radziwill"]},
+      {q:"Dorinda Medley's famous New York mantra was “Make it…”?",correct:"Nice",wrong:["Fun","Fabulous","Rain"]},
+      {q:"In which year did The Real Housewives of Atlanta first air?",correct:"2008",wrong:["2006","2010","2012"]},
+      {q:"After Orange County, which city got the second franchise, in 2008?",correct:"New York City",wrong:["Atlanta","New Jersey","Miami"]},
+      {q:"In which year did The Real Housewives of New Jersey debut?",correct:"2009",wrong:["2007","2010","2011"]},
+      {q:"Which 2020 franchise is set in a city with a large Mormon community?",correct:"Salt Lake City",wrong:["Potomac","Dallas","Miami"]},
+      {q:"Which 2016 franchise is set in an affluent area near Washington, D.C.?",correct:"Potomac",wrong:["Dallas","Miami","New Jersey"]},
+      {q:"Kim Richards and which sister were original Beverly Hills cast members?",correct:"Kyle Richards",wrong:["Lisa Rinna","Camille Grammer","Erika Jayne"]},
+      {q:"The Richards sisters of Beverly Hills are aunts to which socialite?",correct:"Paris Hilton",wrong:["Nicole Richie","Kim Kardashian","Ivanka Trump"]},
+      {q:"Which Atlanta star released the single “Tardy for the Party”?",correct:"Kim Zolciak",wrong:["NeNe Leakes","Kandi Burruss","Cynthia Bailey"]},
+      {q:"Early Beverly Hills star Camille Grammer was married to which actor?",correct:"Kelsey Grammer",wrong:["Ray Romano","Tom Hanks","Kevin Bacon"]},
+      {q:"Who hosts the reunion specials across the Housewives franchises?",correct:"Andy Cohen",wrong:["Jeff Probst","Ryan Seacrest","Carson Daly"]},
+      {q:"Which Potomac star is dubbed the “Grande Dame” of the city?",correct:"Karen Huger",wrong:["Gizelle Bryant","Robyn Dixon","Ashley Darby"]},
+      {q:"Which housewife, sister-in-law to Teresa, sparked a long New Jersey feud?",correct:"Melissa Gorga",wrong:["Caroline Manzo","Jacqueline Laurita","Dina Manzo"]},
+      {q:"Bethenny Frankel's Skinnygirl brand was reportedly sold to which company?",correct:"Beam",wrong:["Coca-Cola","Diageo","PepsiCo"]},
+      {q:"Vicki Gunvalson famously calls herself the “OG of the…”?",correct:"OC",wrong:["USA","Bravo","reality TV"]},
+      {q:"Which short-lived 2010 franchise was set in the U.S. capital?",correct:"Washington, D.C.",wrong:["Miami","Dallas","Vancouver"]},
+      {q:"Lisa Vanderpump's beloved dog, a Beverly Hills fixture, was named…?",correct:"Giggy",wrong:["Ken","Pinky","Coco"]}
     ]
   };
-  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD"};
-  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3')};
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD",4:"LEVEL 4 · LEGENDS"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3'),4:getCSS('--l4')};
   function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
   const KEYS=['A','B','C','D'];
   const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -383,7 +415,7 @@
 
   function startGame(){
     level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
-    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3])}; ptr={1:0,2:0,3:0};
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3]),4:shuffle(BANK[4])}; ptr={1:0,2:0,3:0,4:0};
     hideAllScreens();
     playing=true; startT=performance.now(); runTimer();
     renderStrikes(); nextQuestion();
@@ -454,7 +486,7 @@
 
     if(right){
       correct++; sRight(); streakW=0; streakC++;
-      if(streakC>=2 && level<3){ level++; streakC=0; pendingMove='up'; }
+      if(streakC>=2 && level<4){ level++; streakC=0; pendingMove='up'; }
     } else {
       totalWrong++; sWrong(); streakC=0; streakW++;
       renderStrikes();

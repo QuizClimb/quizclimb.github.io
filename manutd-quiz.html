@@ -11,7 +11,7 @@
   :root{
     --bg0:#1a0708; --bg1:#3a0d10; --card:#33100f; --card2:#43161a;
     --ink:#fff0ef; --mut:#e0a9a6; --line:#6e2226;
-    --l1:#36c98a; --l2:#f6b73c; --l3:#ff5d6e;
+    --l1:#36c98a; --l2:#f6b73c; --l3:#ff5d6e; --l4:#b794ff;
     --gold:#ffd75e; --right:#36c98a; --wrong:#ff5d6e;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -175,9 +175,9 @@
   <div class="screen" id="startScreen">
     <div class="sub">Manchester United Trivia</div>
     <h1 class="big display">Quiz Climb</h1>
-    <p class="lead">20 questions on Manchester United — from Newton Heath to the Theatre of Dreams. The better you do, the harder it gets!</p>
+    <p class="lead">20 questions on Manchester United — from Newton Heath to the Theatre of Dreams. Four tiers now — climb through Easy, Medium and Hard all the way to the new Legends tier!</p>
     <div class="rules">
-      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right answers in a row bumps you up a difficulty level (1 → 2 → 3 → Legends).</span></div>
       <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
       <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
       <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
@@ -350,10 +350,42 @@
       {q:"Which young Busby Babe died 15 days after the Munich crash from his injuries?",correct:"Duncan Edwards",wrong:["Bobby Charlton","Bill Foulkes","Harry Gregg"]},
       {q:"Sir Alex Ferguson joined United in 1986 from which Scottish club he'd led to European glory?",correct:"Aberdeen",wrong:["Celtic","Rangers","Dundee"]},
       {q:"Who scored a famous goal from the halfway line against Wimbledon in 1996?",correct:"David Beckham",wrong:["Ryan Giggs","Paul Scholes","Lee Sharpe"]}
+    ],
+    4:[
+      {q:"Manchester United was founded in 1878 under which original name?",correct:"Newton Heath",wrong:["Manchester Central","Ardwick","Heaton Rovers"]},
+      {q:"In which year did the Munich air disaster claim eight United players?",correct:"1958",wrong:["1956","1960","1948"]},
+      {q:"United won their first European Cup in 1968, beating which Portuguese club?",correct:"Benfica",wrong:["Porto","Sporting Lisbon","Real Madrid"]},
+      {q:"Who captained United in the 1968 European Cup final and scored twice?",correct:"Bobby Charlton",wrong:["George Best","Denis Law","Nobby Stiles"]},
+      {q:"Who is Manchester United's all-time leading goalscorer?",correct:"Wayne Rooney",wrong:["Bobby Charlton","Denis Law","Ruud van Nistelrooy"]},
+      {q:"How many goals did Wayne Rooney score for United?",correct:"253",wrong:["199","301","221"]},
+      {q:"Whose 249-goal club record did Rooney break in 2017?",correct:"Bobby Charlton",wrong:["Denis Law","George Best","Jack Rowley"]},
+      {q:"Who holds United's all-time appearance record with 963 games?",correct:"Ryan Giggs",wrong:["Bobby Charlton","Paul Scholes","Gary Neville"]},
+      {q:"Ryan Giggs won a record how many Premier League titles?",correct:"13",wrong:["10","8","15"]},
+      {q:"The 1999 treble was the league, the Champions League and which cup?",correct:"The FA Cup",wrong:["The League Cup","The UEFA Cup","The Cup Winners' Cup"]},
+      {q:"Who scored United's injury-time winner in the 1999 Champions League final?",correct:"Ole Gunnar Solskjaer",wrong:["Teddy Sheringham","David Beckham","Andy Cole"]},
+      {q:"United beat which German club 2-1 in that dramatic 1999 final?",correct:"Bayern Munich",wrong:["Borussia Dortmund","Bayer Leverkusen","Werder Bremen"]},
+      {q:"Sir Matt Busby's talented young 1950s side were nicknamed the…?",correct:"Busby Babes",wrong:["Red Devils","Golden Boys","Old Boys"]},
+      {q:"Which United winger won the Ballon d'Or in 1968?",correct:"George Best",wrong:["Bobby Charlton","Denis Law","Bryan Robson"]},
+      {q:"In which year did Sir Alex Ferguson become United manager?",correct:"1986",wrong:["1990","1983","1992"]},
+      {q:"Ferguson's first major trophy at United was which 1990 cup?",correct:"The FA Cup",wrong:["The League Cup","The European Cup","The league title"]},
+      {q:"Which Frenchman infamously kung-fu kicked a fan in 1995?",correct:"Eric Cantona",wrong:["David Ginola","Patrice Evra","Laurent Blanc"]},
+      {q:"Old Trafford is popularly nicknamed the…?",correct:"Theatre of Dreams",wrong:["Cathedral of Football","Red Fortress","House of Reds"]},
+      {q:"United hold the record for how many English top-flight league titles?",correct:"20",wrong:["18","13","25"]},
+      {q:"United's most recent league title came in which season, Ferguson's last?",correct:"2012-13",wrong:["2010-11","2008-09","2013-14"]},
+      {q:"Which Dutch striker set United's European scoring record in the 2000s?",correct:"Ruud van Nistelrooy",wrong:["Robin van Persie","Dennis Bergkamp","Marc Overmars"]},
+      {q:"The 2008 Champions League final, won by United on penalties, was held in which city?",correct:"Moscow",wrong:["Rome","Athens","London"]},
+      {q:"Which Scottish striker, nicknamed “The King,” won the Ballon d'Or at United in 1964?",correct:"Denis Law",wrong:["Bobby Charlton","George Best","Jim Holton"]},
+      {q:"The “Holy Trinity” statue at Old Trafford depicts Best, Law and which player?",correct:"Bobby Charlton",wrong:["Bryan Robson","Duncan Edwards","Nobby Stiles"]},
+      {q:"Which Busby Babe died of his injuries 15 days after the Munich crash?",correct:"Duncan Edwards",wrong:["Bobby Charlton","Bill Foulkes","Harry Gregg"]},
+      {q:"The “Class of '92” included Beckham, Scholes, Butt, Neville and which Welshman?",correct:"Ryan Giggs",wrong:["Mark Hughes","Gary Speed","Craig Bellamy"]},
+      {q:"Who succeeded Sir Alex Ferguson as United manager in 2013?",correct:"David Moyes",wrong:["Louis van Gaal","Jose Mourinho","Ryan Giggs"]},
+      {q:"United won which European trophy in 2017 under Jose Mourinho?",correct:"The Europa League",wrong:["The Champions League","The Cup Winners' Cup","The Super Cup"]},
+      {q:"Which captain, nicknamed “Captain Marvel,” led United through the 1980s?",correct:"Bryan Robson",wrong:["Steve Bruce","Roy Keane","Gary Pallister"]},
+      {q:"United's club crest features a red devil holding what?",correct:"A trident",wrong:["A sword","A football","A flag"]}
     ]
   };
-  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD"};
-  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3')};
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD",4:"LEVEL 4 · LEGENDS"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3'),4:getCSS('--l4')};
   function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
   const KEYS=['A','B','C','D'];
   const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -383,7 +415,7 @@
 
   function startGame(){
     level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
-    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3])}; ptr={1:0,2:0,3:0};
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3]),4:shuffle(BANK[4])}; ptr={1:0,2:0,3:0,4:0};
     hideAllScreens();
     playing=true; startT=performance.now(); runTimer();
     renderStrikes(); nextQuestion();
@@ -454,7 +486,7 @@
 
     if(right){
       correct++; sRight(); streakW=0; streakC++;
-      if(streakC>=2 && level<3){ level++; streakC=0; pendingMove='up'; }
+      if(streakC>=2 && level<4){ level++; streakC=0; pendingMove='up'; }
     } else {
       totalWrong++; sWrong(); streakC=0; streakW++;
       renderStrikes();
