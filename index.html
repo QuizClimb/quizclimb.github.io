@@ -44,6 +44,9 @@
 
   .grid{display:grid;grid-template-columns:1fr;gap:16px;width:100%;max-width:680px;}
   @media(min-width:620px){ .grid{grid-template-columns:1fr 1fr;} }
+  .cat{grid-column:1/-1;font-family:'Baloo 2';font-weight:800;font-size:clamp(20px,5.2vw,28px);color:var(--ink);letter-spacing:.5px;margin:10px 2px 0;display:flex;align-items:center;gap:14px;}
+  .cat:first-child{margin-top:0;}
+  .cat::after{content:"";flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--line),transparent);}
 
   .card{position:relative;display:block;text-decoration:none;color:inherit;overflow:hidden;
     background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
@@ -115,10 +118,12 @@
   <header>
     <div class="kicker">Trivia · Three Levels · Beat the Clock</div>
     <h1>Quiz Climb</h1>
-    <p class="tag">Twenty-four games, one challenge. Answer right to climb the difficulty, slip up and drop back — how far can you get before the clock or your luck runs out?</p>
+    <p class="tag">One challenge, two ways to play. Answer right to climb the difficulty, slip up and drop back — how far can you get before the clock or your luck runs out?</p>
   </header>
 
   <main class="grid">
+    <h2 class="cat">Quizzes</h2>
+
     <a class="card feature c5" href="general-knowledge-quiz.html">
       <span class="badge">Super Quiz · 4 Tiers</span>
       <h2>General Knowledge</h2>
@@ -237,6 +242,8 @@
       <p>Bitcoin's origins, Ethereum and the fundamentals — history, not hype.</p>
       <div class="meta"><span class="qn">120 questions · 4 tiers</span><span class="play">Play <span class="arr">›</span></span></div>
     </a>
+
+    <h2 class="cat">Games</h2>
 
     <a class="card c18" href="higher-lower.html">
       <span class="badge">Game</span>
