@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Wrestling Quiz — TierBrain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#120610; --bg1:#2b0c18; --card:#241020; --card2:#33162c;
+    --ink:#fdeef2; --mut:#c79bb0; --line:#5a2740;
+    --l1:#f0a93c; --l2:#ef6f3c; --l3:#e23c5a; --l4:#b14dff;
+    --gold:#ffcf4d; --right:#3fcf8e; --wrong:#ff4d6a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(120% 90% at 82% -10%, rgba(255,207,77,.18), transparent 55%),
+      radial-gradient(100% 80% at 0% 110%, rgba(226,60,90,.16), transparent 55%),
+      linear-gradient(160deg,var(--bg0),var(--bg1));
+    display:flex;align-items:center;justify-content:center;min-height:100%;
+    overflow:hidden;user-select:none;touch-action:manipulation;}
+  #app{position:relative;width:100%;max-width:560px;height:100dvh;max-height:760px;
+    display:flex;flex-direction:column;padding:16px;gap:12px;overflow:hidden;}
+  .display{font-family:'Baloo 2',cursive;}
+
+  /* ---------- HUD ---------- */
+  #hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .lvlpill{font-family:'Baloo 2';font-weight:700;font-size:14px;letter-spacing:.5px;
+    padding:6px 14px;border-radius:30px;color:#10142e;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+  .timer{margin-left:auto;font-family:'Baloo 2';font-weight:700;font-size:20px;color:var(--gold);
+    display:flex;align-items:center;gap:6px;}
+  .timer svg{width:17px;height:17px;opacity:.85}
+  .strikes{display:flex;gap:5px;align-items:center;}
+  .strike{width:15px;height:15px;border-radius:50%;border:2px solid var(--line);
+    transition:all .25s;position:relative;}
+  .strike.used{background:var(--wrong);border-color:var(--wrong);box-shadow:0 0 10px rgba(255,93,122,.6);}
+  .progwrap{height:8px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;}
+  .progbar{height:100%;width:0;background:linear-gradient(90deg,var(--l1),var(--gold));
+    border-radius:10px;transition:width .4s cubic-bezier(.4,1.3,.5,1);}
+  .qcount{font-weight:800;color:var(--mut);font-size:13px;letter-spacing:.5px;}
+
+  /* ---------- question ---------- */
+  #qcard{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;min-height:0;}
+  .qbox{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);
+    border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.3);}
+  .qtext{font-family:'Baloo 2';font-weight:700;font-size:clamp(20px,5.4vw,28px);line-height:1.25;}
+  .opts{display:flex;flex-direction:column;gap:11px;}
+  .opt{font-family:'Nunito';font-weight:700;font-size:clamp(16px,4.4vw,19px);color:var(--ink);
+    background:var(--card2);border:2px solid var(--line);border-radius:15px;padding:15px 18px;
+    text-align:left;cursor:pointer;display:flex;align-items:center;gap:13px;
+    transition:transform .08s,background .15s,border-color .15s;}
+  .opt:active{transform:scale(.985);}
+  .opt .key{flex:none;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;font-family:'Baloo 2';font-weight:700;
+    font-size:15px;color:var(--mut);}
+  .opt .txt{flex:1;}
+  .opt .mark{flex:none;width:24px;height:24px;opacity:0;transition:opacity .2s;}
+  .opt.correct{background:rgba(51,201,138,.18);border-color:var(--right);}
+  .opt.correct .key{background:var(--right);color:#08221a;}
+  .opt.correct .mark{opacity:1;}
+  .opt.wrong{background:rgba(255,93,122,.16);border-color:var(--wrong);}
+  .opt.wrong .key{background:var(--wrong);color:#2a0a12;}
+  .opt.wrong .mark{opacity:1;}
+  .opt.dim{opacity:.45;}
+  .opts.locked .opt{cursor:default;}
+
+  /* ---------- toast ---------- */
+  #toast{position:absolute;top:64px;left:50%;transform:translateX(-50%) translateY(-12px);
+    font-family:'Baloo 2';font-weight:800;font-size:17px;padding:9px 20px;border-radius:30px;
+    color:#0e142e;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:8;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- overlays ---------- */
+  .screen{position:absolute;inset:0;background:linear-gradient(160deg,rgba(14,19,48,.97),rgba(27,33,80,.98));
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:26px;gap:16px;z-index:10;overflow-y:auto;}
+  .screen.hidden{display:none;}
+  .big{font-family:'Baloo 2';font-weight:800;font-size:clamp(34px,9vw,56px);line-height:.95;
+    background:linear-gradient(120deg,var(--gold),#ff9e6b);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--mut);font-weight:600;letter-spacing:3px;font-size:13px;text-transform:uppercase;}
+  .lead{font-size:clamp(15px,3.8vw,18px);color:#cdd3ff;font-weight:600;max-width:430px;line-height:1.5;}
+  .rules{text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;
+    padding:16px 18px;max-width:430px;display:flex;flex-direction:column;gap:9px;}
+  .rule{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:#dfe3ff;font-weight:600;line-height:1.35;}
+  .rule .dot{flex:none;width:9px;height:9px;border-radius:50%;margin-top:6px;}
+  button.cta{font-family:'Baloo 2';font-weight:700;font-size:clamp(19px,5vw,23px);color:#10142e;
+    background:linear-gradient(180deg,var(--gold),#f5a93a);border:none;cursor:pointer;
+    padding:14px 44px;border-radius:50px;box-shadow:0 7px 0 #b9801f,0 12px 26px rgba(245,170,60,.4);
+    transition:transform .08s,box-shadow .08s;}
+  button.cta:active{transform:translateY(4px);box-shadow:0 3px 0 #b9801f;}
+  button.cta.blue{background:linear-gradient(180deg,#6fa8ff,#3d7fe8);box-shadow:0 7px 0 #2b5cad,0 12px 26px rgba(60,120,230,.4);color:#fff;}
+  button.cta.blue:active{box-shadow:0 3px 0 #2b5cad;}
+  button.ghost{background:none;border:none;font-family:'Nunito';font-weight:800;color:#8fb6ff;
+    font-size:15px;cursor:pointer;text-decoration:underline;padding:6px;}
+  .statline{font-size:clamp(16px,4vw,20px);color:#cdd3ff;font-weight:700;}
+  .statline b{color:var(--gold);font-size:1.3em;font-family:'Baloo 2';}
+  .timeBig{font-family:'Baloo 2';font-weight:800;font-size:clamp(46px,13vw,76px);color:var(--gold);line-height:1;}
+
+  /* ---------- scoreboard ---------- */
+  .board{width:100%;max-width:440px;background:rgba(255,255,255,.04);border:1px solid var(--line);
+    border-radius:16px;padding:8px;max-height:46vh;overflow-y:auto;}
+  .board h3{font-family:'Baloo 2';font-size:14px;color:var(--gold);letter-spacing:2px;margin:6px 0 8px;}
+  .brow{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:11px;font-weight:700;font-size:15px;}
+  .brow:nth-child(even){background:rgba(255,255,255,.04);}
+  .brow.me{background:rgba(255,215,94,.14);box-shadow:inset 0 0 0 2px rgba(255,215,94,.5);}
+  .brk{width:26px;text-align:center;font-family:'Baloo 2';color:var(--gold);font-weight:800;}
+  .bwho{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bcorr{color:var(--mut);font-size:12.5px;font-weight:700;}
+  .btime{font-family:'Baloo 2';font-weight:800;color:#bfe9d6;}
+  .empty,.loading{color:var(--mut);font-weight:600;padding:16px;font-size:14px;}
+  .namebox{display:flex;gap:9px;width:100%;max-width:380px;}
+  .namebox input{flex:1;font-family:'Nunito';font-weight:700;font-size:17px;color:var(--ink);
+    background:rgba(255,255,255,.06);border:2px solid var(--line);border-radius:14px;padding:12px 15px;
+    text-align:center;outline:none;}
+  .namebox input:focus{border-color:var(--gold);}
+  button.save{font-family:'Baloo 2';font-weight:700;font-size:16px;color:#0e142e;border:none;cursor:pointer;
+    padding:12px 20px;border-radius:14px;background:linear-gradient(180deg,#5fe0a8,#33c98a);
+    box-shadow:0 4px 0 #1f8a5e;white-space:nowrap;}
+  button.save:active{transform:translateY(3px);box-shadow:0 1px 0 #1f8a5e;}
+  .savedok{color:var(--right);font-weight:800;}
+  .hidden{display:none!important;}
+  .timelabel{font-weight:700;color:var(--mut);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:-4px;}
+  .timerow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .timeopt{font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--mut);background:rgba(255,255,255,.05);
+    border:2px solid var(--line);border-radius:30px;padding:8px 16px;cursor:pointer;transition:all .12s;}
+  .timeopt.sel{color:#10142e;background:var(--gold);border-color:var(--gold);}
+  .timeopt:active{transform:scale(.95);}
+  .timer.low{color:var(--wrong);animation:pulse .8s ease-in-out infinite;}
+  .timer.low svg{color:var(--wrong);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  .homelink{display:inline-block;margin-top:6px;font-family:inherit;font-weight:700;font-size:14px;
+    color:var(--mut);text-decoration:none;opacity:.85;transition:opacity .15s;}
+  .homelink:hover{opacity:1;text-decoration:underline;}
+  .scorebtn{display:inline-block;margin-top:8px;font-family:inherit;font-weight:700;font-size:14px;color:var(--mut);background:none;border:none;cursor:pointer;opacity:.85;}
+  .scorebtn:hover{opacity:1;text-decoration:underline;}
+  .board{list-style:none;padding:0;margin:14px auto;width:100%;max-width:440px;}
+  .brow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);margin-bottom:6px;font-weight:700;text-align:left;}
+  .brow.me{background:var(--gold);color:#10142e;}
+  .brk{width:22px;text-align:center;color:var(--mut);flex:none;}
+  .brow.me .brk{color:#10142e;}
+  .bnm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bsc{text-align:right;font-variant-numeric:tabular-nums;font-size:14px;flex:none;}
+  .bmeta{color:var(--mut);font-size:11px;font-weight:600;}
+  .brow.me .bmeta{color:#10142e;}
+  .saverow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0;}
+  .saverow input{font-family:inherit;font-weight:700;font-size:15px;padding:10px 14px;border-radius:30px;border:2px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);max-width:160px;text-align:center;}
+  .bempty{color:var(--mut);font-weight:600;margin:14px 0;}
+  .gcode{font-family:inherit;font-weight:700;font-size:15px;padding:11px 16px;border-radius:30px;border:2px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);max-width:240px;width:100%;text-align:center;letter-spacing:1px;text-transform:uppercase;}
+  .gcode:focus{outline:none;border-color:var(--gold);}
+  .ghint{color:var(--mut);font-weight:600;font-size:11.5px;margin-top:-4px;}
+  .bmode{color:var(--gold);font-weight:700;font-size:13px;letter-spacing:1px;margin:-4px 0 2px;}
+  .bload{color:var(--mut);font-weight:600;text-align:center;padding:14px;list-style:none;}
+  .disputeWrap{margin-top:20px;}
+  .disputeToggle{display:inline-block;color:var(--mut);font-family:inherit;font-weight:800;font-size:13px;text-decoration:underline;cursor:pointer;padding:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- live HUD -->
+  <div id="hud">
+    <span class="lvlpill display" id="lvlPill">LEVEL 1</span>
+    <span class="strikes" id="strikes"></span>
+    <span class="timer display"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="timer">0:00</span></span>
+  </div>
+  <div class="progwrap"><div class="progbar" id="progbar"></div></div>
+  <div class="qcount" id="qcount">QUESTION 1 OF 20</div>
+
+  <!-- question -->
+  <div id="qcard">
+    <div class="qbox"><div class="qtext" id="qtext">…</div></div>
+    <div class="opts" id="opts"></div>
+  </div>
+
+  <div id="toast" class="display"></div>
+
+  <!-- START -->
+  <div class="screen" id="startScreen">
+    <div class="sub">Wrestling Trivia</div>
+    <h1 class="big display">TierBrain</h1>
+    <p class="lead">240 questions from the squared circle worldwide — WWE, WCW and ECW, Japan, Lucha Libre, World of Sport and Europe: the stars, the world titles, the events and the matches, across four tiers up to Legends.</p>
+    <div class="rules">
+      <div class="rule"><span class="dot" style="background:var(--l1)"></span><span><b>Climb up:</b> 2 right in a row bumps you up a difficulty level (1 → 2 → 3 → Legends).</span></div>
+      <div class="rule"><span class="dot" style="background:var(--l2)"></span><span><b>Slip down:</b> 2 wrong in a row drops you back a level.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--wrong)"></span><span><b>Knocked out:</b> 4 wrong answers in total ends your run.</span></div>
+      <div class="rule"><span class="dot" style="background:var(--gold)"></span><span><b>Beat the clock:</b> you have 2 minutes to answer all 20 questions.</span></div>
+    </div>
+    <div class="timelabel">Choose your clock</div>
+    <div class="timerow" id="timeRow"></div>
+    <div class="timelabel">Group code — optional</div>
+    <input id="groupInput" class="gcode" type="text" maxlength="24" placeholder="e.g. SMITH-FAMILY" autocomplete="off">
+    <div class="ghint">Friends who enter the same code share a leaderboard. Leave blank to keep scores on this device.</div>
+    <button class="cta" id="startBtn">Start Quiz</button>
+    <button type="button" class="scorebtn" id="startBoard">Best Scores</button>
+    <a class="homelink" href="index.html">‹ All games</a>
+  </div>
+
+  <!-- KNOCKED OUT -->
+  <div class="screen hidden" id="outScreen">
+    <div class="sub" style="color:var(--wrong)">Knocked Out</div>
+    <h1 class="big display" style="background:linear-gradient(120deg,#ff6b8a,#ff9e6b);-webkit-background-clip:text;background-clip:text;">So close!</h1>
+    <p class="lead">You ran out of lives, but you can jump straight back in.</p>
+    <p class="statline">You answered <b id="outAns">0</b> questions<br>and got <b id="outCorr">0</b> right</p>
+    <button class="cta" id="outRetry">Try Again</button>
+    <button class="ghost" id="outMenu">Back to Menu</button>
+    <button type="button" class="scorebtn endboard">Best Scores</button>
+  </div>
+
+  <!-- COMPLETED -->
+  <div class="screen hidden" id="doneScreen">
+    <div class="sub">All 20 Complete!</div>
+    <div class="timeBig display" id="doneTime">0:00</div>
+    <p class="statline" style="margin-top:-6px;">left on the clock</p>
+    <p class="statline"><b id="doneCorr">0</b> correct · <b id="doneAns">20</b>/20 answered</p>
+    <p class="statline">reached <b id="doneLvl">LEVEL 1</b></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="cta" id="doneAgain">Play Again</button>
+      <button class="cta blue" id="doneMenu">Menu</button>
+    </div>
+    <button type="button" class="scorebtn endboard">Best Scores</button>
+  </div>
+
+  <!-- TIME'S UP -->
+  <div class="screen hidden" id="timeupScreen">
+    <div class="sub" style="color:var(--gold)">Time's Up!</div>
+    <h1 class="big display">Final whistle!</h1>
+    <p class="lead">Your 2 minutes are up — here's how far you climbed.</p>
+    <p class="statline">You answered <b id="tuAns">0</b> questions<br>and got <b id="tuCorr">0</b> right</p>
+    <button class="cta" id="tuRetry">Try Again</button>
+    <button class="ghost" id="tuMenu">Back to Menu</button>
+    <button type="button" class="scorebtn endboard">Best Scores</button>
+  </div>
+
+  <!-- BEST SCORES -->
+  <div class="screen hidden" id="boardScreen">
+    <div class="sub">Best Scores</div>
+    <h1 class="big display">Leaderboard</h1>
+    <p class="bmode" id="boardTitle"></p>
+    <div id="saveArea" class="hidden">
+      <p class="statline">Save your run: <b id="saveSummary"></b></p>
+      <div class="saverow">
+        <input id="boardName" type="text" maxlength="14" placeholder="Your name" autocomplete="off">
+        <button class="cta" id="boardSave">Save</button>
+      </div>
+    </div>
+    <ul class="board" id="boardList"></ul>
+    <p class="bempty hidden" id="boardEmpty">No scores yet — be the first!</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="cta" id="boardPlay">Play</button>
+      <button class="cta blue" id="boardBack">Menu</button>
+    </div>
+    <div class="disputeWrap">
+      <a class="disputeToggle" id="disputeLink" href="https://forms.gle/YOUR_FORM_LINK" target="_blank" rel="noopener">Spotted a wrong answer? Dispute a fact ›</a>
+    </div>
+</div>
+
+<script>
+(function(){
+  // ============ QUESTION BANK (wrestling, settled facts) ============
+  const BANK={"1": [{"q": "What is the name of WWE's biggest annual event, first held in 1985?", "correct": "WrestleMania", "wrong": ["SummerSlam", "Royal Rumble", "Survivor Series"]}, {"q": "Which bandana-wearing star headlined the 1980s 'Hulkamania' craze?", "correct": "Hulk Hogan", "wrong": ["Randy Savage", "Ultimate Warrior", "Sgt. Slaughter"]}, {"q": "Which wrestler turned Hollywood actor goes by 'The Rock'?", "correct": "Dwayne Johnson", "wrong": ["John Cena", "Dave Bautista", "Steve Austin"]}, {"q": "'Stone Cold' is the nickname of which beer-swilling WWE legend?", "correct": "Steve Austin", "wrong": ["The Undertaker", "Triple H", "Kane"]}, {"q": "Which WWE star is famous for the catchphrase 'You can't see me'?", "correct": "John Cena", "wrong": ["The Rock", "Randy Orton", "Batista"]}, {"q": "The Undertaker's character is themed around which profession?", "correct": "A mortician/undertaker", "wrong": ["A police officer", "A circus ringmaster", "A sea captain"]}, {"q": "What do you call the platform where wrestling matches take place?", "correct": "The ring", "wrong": ["The cage", "The pitch", "The court"]}, {"q": "In wrestling, a 'heel' is portrayed as what?", "correct": "A villain", "wrong": ["A hero", "A referee", "A commentator"]}, {"q": "A crowd-favourite good-guy wrestler is known by which term?", "correct": "A babyface", "wrong": ["A heel", "A jobber", "A booker"]}, {"q": "Which is the largest wrestling promotion in the world, based in the USA?", "correct": "WWE", "wrong": ["AEW", "NJPW", "TNA"]}, {"q": "What letters did WWE go by before renaming in 2002?", "correct": "WWF", "wrong": ["WCW", "ECW", "NWA"]}, {"q": "Which giant French-born wrestler was billed 'The Eighth Wonder of the World'?", "correct": "Andre the Giant", "wrong": ["Big Show", "Yokozuna", "The Great Khali"]}, {"q": "Rey Mysterio is famous for always wearing what?", "correct": "A mask", "wrong": ["A cowboy hat", "Only face paint", "A cape"]}, {"q": "Which masked Mexican legend was buried wearing his silver mask?", "correct": "El Santo", "wrong": ["Blue Demon", "Mil Mascaras", "Rey Mysterio"]}, {"q": "What is the Mexican style of masked, high-flying wrestling called?", "correct": "Lucha libre", "wrong": ["Strong style", "Catch", "Sumo"]}, {"q": "In Britain, wrestling was a Saturday staple on which ITV programme?", "correct": "World of Sport", "wrong": ["Match of the Day", "Grandstand", "Sportsnight"]}, {"q": "Which enormous British wrestler was famous for the cry 'Easy! Easy!'?", "correct": "Big Daddy", "wrong": ["Giant Haystacks", "Kendo Nagasaki", "Mick McManus"]}, {"q": "Big Daddy's most famous British rival was which equally huge wrestler?", "correct": "Giant Haystacks", "wrong": ["Mick McManus", "Jackie Pallo", "Rollerball Rocco"]}, {"q": "Which masked British wrestler kept his identity hidden his whole career?", "correct": "Kendo Nagasaki", "wrong": ["Big Daddy", "Mick McManus", "Catweazle"]}, {"q": "Pinning an opponent's shoulders for a three-count is called a what?", "correct": "A pinfall", "wrong": ["A submission", "A countout", "A disqualification"]}, {"q": "Which leg-twisting submission was popularised by Bret Hart?", "correct": "The Sharpshooter", "wrong": ["The Figure-Four", "The Sleeper", "The Camel Clutch"]}, {"q": "'Macho Man' was the nickname of which colourful 1980s WWF star?", "correct": "Randy Savage", "wrong": ["Ric Flair", "Jake Roberts", "Ted DiBiase"]}, {"q": "Which long-haired star was 'The Nature Boy', famous for shouting 'Woooo!'?", "correct": "Ric Flair", "wrong": ["Dusty Rhodes", "Roddy Piper", "Rick Rude"]}, {"q": "What is WWE's 30-man over-the-top-rope event called?", "correct": "The Royal Rumble", "wrong": ["Money in the Bank", "Elimination Chamber", "King of the Ring"]}, {"q": "In a Royal Rumble, how are wrestlers eliminated?", "correct": "Thrown over the top rope to the floor", "wrong": ["Pinned for three", "By submission only", "Knocked out of a cage"]}, {"q": "Which WWE star is known as 'The Beast', a former UFC champion?", "correct": "Brock Lesnar", "wrong": ["Goldberg", "Batista", "Bobby Lashley"]}, {"q": "Which face-painted star was 'The Man Called Sting' in WCW?", "correct": "Sting", "wrong": ["The Ultimate Warrior", "Papa Shango", "Demolition"]}, {"q": "A classic tag team match features teams of how many wrestlers each?", "correct": "Two", "wrong": ["One", "Three", "Four"]}, {"q": "Which Canadian wrestling family includes Bret and Owen?", "correct": "The Hart family", "wrong": ["The Von Erichs", "The Guerreros", "The Rhodes family"]}, {"q": "Which sumo-styled Samoan was a huge WWF Champion in the 1990s?", "correct": "Yokozuna", "wrong": ["Rikishi", "Umaga", "King Kong Bundy"]}, {"q": "A wrestling move launched from the top rope is broadly called what?", "correct": "An aerial/high-flying move", "wrong": ["A rest hold", "A lockup", "A test of strength"]}, {"q": "Which businessman is the long-time chairman associated with WWE?", "correct": "Vince McMahon", "wrong": ["Ted Turner", "Tony Khan", "Dixie Carter"]}, {"q": "Whose finisher is the 'RKO', supposedly hit 'outta nowhere'?", "correct": "Randy Orton", "wrong": ["John Cena", "Edge", "Sheamus"]}, {"q": "The 'Brothers of Destruction' were The Undertaker and who?", "correct": "Kane", "wrong": ["Big Show", "Mankind", "Viscera"]}, {"q": "What word describes a scripted ongoing rivalry in wrestling?", "correct": "A feud", "wrong": ["A shoot", "A gimmick", "A botch"]}, {"q": "Which Canadian 'Hitman' was a WWF Champion in the early 1990s?", "correct": "Bret Hart", "wrong": ["Shawn Michaels", "Razor Ramon", "Diesel"]}, {"q": "Which US promotion, founded in 2019 and owned by Tony Khan, rivals WWE?", "correct": "AEW", "wrong": ["TNA", "ROH", "NJPW"]}, {"q": "Mil Mascaras' name translates from Spanish as what?", "correct": "A Thousand Masks", "wrong": ["The Saint", "Blue Demon", "Silver King"]}, {"q": "Which legendary luchador was the eternal rival of El Santo?", "correct": "Blue Demon", "wrong": ["Mil Mascaras", "Perro Aguayo", "Octagon"]}, {"q": "What does a wrestling champion wear to show their status?", "correct": "A title belt", "wrong": ["A medal", "A trophy", "A sash"]}, {"q": "Which WWE star is nicknamed 'The Game'?", "correct": "Triple H", "wrong": ["Randy Orton", "Edge", "Batista"]}, {"q": "The Undertaker's signature finishing move is the ___.", "correct": "Tombstone Piledriver", "wrong": ["Pedigree", "RKO", "Sweet Chin Music"]}, {"q": "Shawn Michaels' superkick finisher is called ___.", "correct": "Sweet Chin Music", "wrong": ["Pedigree", "Sharpshooter", "Stone Cold Stunner"]}, {"q": "Triple H's finishing move is the ___.", "correct": "Pedigree", "wrong": ["Sweet Chin Music", "RKO", "F5"]}, {"q": "Brock Lesnar's finishing move is the ___.", "correct": "F5", "wrong": ["RKO", "Pedigree", "619"]}, {"q": "Which match takes place inside a giant roofed steel structure?", "correct": "Hell in a Cell", "wrong": ["Royal Rumble", "Money in the Bank", "Iron Man match"]}, {"q": "Mick Foley's three famous personas were Mankind, Dude Love and ___.", "correct": "Cactus Jack", "wrong": ["Kane", "Diesel", "Mr. Socko"]}, {"q": "Rey Mysterio's signature move, named after a California area code, is the ___.", "correct": "619", "wrong": ["450", "Frog Splash", "West Coast Pop"]}, {"q": "Which Canadian star is known as 'Y2J'?", "correct": "Chris Jericho", "wrong": ["Edge", "Christian", "Lance Storm"]}, {"q": "The tag team of Matt and Jeff Hardy is known as the ___.", "correct": "Hardy Boyz", "wrong": ["Dudley Boyz", "New Age Outlaws", "APA"]}, {"q": "Which women's wrestler is the daughter of Ric Flair?", "correct": "Charlotte Flair", "wrong": ["Becky Lynch", "Sasha Banks", "Bayley"]}, {"q": "Which WWE women's star branded herself 'The Man'?", "correct": "Becky Lynch", "wrong": ["Charlotte Flair", "Ronda Rousey", "Bianca Belair"]}, {"q": "Goldberg's signature catchphrase is 'Who's ___?'", "correct": "next", "wrong": ["there", "first", "counting"]}, {"q": "Which everyday object is the classic weapon in hardcore matches?", "correct": "A steel chair", "wrong": ["A baseball bat", "A frying pan", "A broom"]}, {"q": "In lucha libre, the Spanish word 'luchador' means a what?", "correct": "Wrestler", "wrong": ["Referee", "Champion", "Mask"]}, {"q": "Which actor played a luchador-priest in the comedy 'Nacho Libre'?", "correct": "Jack Black", "wrong": ["Will Ferrell", "Danny Trejo", "Antonio Banderas"]}, {"q": "Hulk Hogan played the wrestler 'Thunderlips' in which 1982 film?", "correct": "Rocky III", "wrong": ["Rocky II", "The Wrestler", "Over the Top"]}, {"q": "Andre the Giant played the giant 'Fezzik' in which 1987 film?", "correct": "The Princess Bride", "wrong": ["The NeverEnding Story", "Conan the Barbarian", "Labyrinth"]}, {"q": "WWE's flagship Monday-night TV show is called ___.", "correct": "Raw", "wrong": ["SmackDown", "Nitro", "Dynamite"]}, {"q": "Which WWE show is branded blue and named ___?", "correct": "SmackDown", "wrong": ["Raw", "NXT", "Heat"]}], "2": [{"q": "Who main-evented the first WrestleMania (1985), teaming with Mr. T?", "correct": "Hulk Hogan", "wrong": ["Randy Savage", "Andre the Giant", "Roddy Piper"]}, {"q": "At WrestleMania III, Hulk Hogan famously body-slammed which giant?", "correct": "Andre the Giant", "wrong": ["Big John Studd", "King Kong Bundy", "Earthquake"]}, {"q": "Hulk Hogan's real name is what?", "correct": "Terry Bollea", "wrong": ["Mark Calaway", "Steve Borden", "Terry Gene Brunk"]}, {"q": "The Undertaker's WrestleMania streak was finally ended by whom?", "correct": "Brock Lesnar", "wrong": ["Triple H", "CM Punk", "Roman Reigns"]}, {"q": "Which 1990s US promotion ran 'Monday Nitro' against WWF's 'Raw'?", "correct": "WCW", "wrong": ["ECW", "TNA", "NWA"]}, {"q": "Which hardcore Philadelphia promotion was led by Paul Heyman?", "correct": "ECW", "wrong": ["WCW", "AWA", "Mid-South"]}, {"q": "The nWo formed in WCW in 1996 led by Hogan, Scott Hall and who?", "correct": "Kevin Nash", "wrong": ["Sting", "Lex Luger", "Randy Savage"]}, {"q": "How many world title reigns is Ric Flair most famously credited with?", "correct": "16", "wrong": ["10", "21", "7"]}, {"q": "Which infamous 1997 incident involved Bret Hart and Shawn Michaels?", "correct": "The Montreal Screwjob", "wrong": ["The Curtain Call", "The Plane Ride from Hell", "The Fingerpoke of Doom"]}, {"q": "Steve Austin's career-defining catchphrase came from which 1996 promo?", "correct": "Austin 3:16", "wrong": ["What?", "The Attitude Era", "Stunner Sunday"]}, {"q": "Who founded New Japan Pro-Wrestling in 1972?", "correct": "Antonio Inoki", "wrong": ["Giant Baba", "Rikidozan", "Riki Choshu"]}, {"q": "Who founded All Japan Pro Wrestling and once pitched for the Yomiuri Giants?", "correct": "Giant Baba", "wrong": ["Antonio Inoki", "Jumbo Tsuruta", "Tiger Mask"]}, {"q": "NJPW's top singles title carries which acronym?", "correct": "IWGP", "wrong": ["NWA", "PWF", "GHC"]}, {"q": "The hard-hitting Japanese style championed by Inoki is called what?", "correct": "Strong style", "wrong": ["Lucha libre", "Catch", "King's Road"]}, {"q": "The original masked high-flyer Tiger Mask was portrayed by whom?", "correct": "Satoru Sayama", "wrong": ["Jushin Liger", "Tatsumi Fujinami", "Keiji Mutoh"]}, {"q": "Who founded Mexico's EMLL (now CMLL) in 1933, the 'father of lucha libre'?", "correct": "Salvador Lutteroth", "wrong": ["El Santo", "Ray Mendoza", "Antonio Pena"]}, {"q": "CMLL, the world's oldest active wrestling promotion, is based in which country?", "correct": "Mexico", "wrong": ["USA", "Japan", "Spain"]}, {"q": "A lucha 'mascara contra mascara' match is wagered on what?", "correct": "The wrestlers' masks", "wrong": ["A title belt", "Prize money", "Hair only"]}, {"q": "Big Daddy's promoter brother, who ran Joint Promotions, was named what?", "correct": "Max Crabtree", "wrong": ["Mick McManus", "Brian Dixon", "Norman Crabtree"]}, {"q": "World of Sport wrestling was axed from ITV in which year?", "correct": "1988", "wrong": ["1985", "1992", "1979"]}, {"q": "Which 'Man You Love to Hate' was a top British heel famed across Europe?", "correct": "Mick McManus", "wrong": ["Jackie Pallo", "Kendo Nagasaki", "Rollerball Rocco"]}, {"q": "Which event is WWE's late-August 'biggest party of the summer'?", "correct": "SummerSlam", "wrong": ["Survivor Series", "Backlash", "Bad Blood"]}, {"q": "The 'Heartbreak Kid' is the nickname of which WWE Hall of Famer?", "correct": "Shawn Michaels", "wrong": ["Bret Hart", "Razor Ramon", "Triple H"]}, {"q": "Which faction did Triple H and Shawn Michaels lead?", "correct": "D-Generation X", "wrong": ["The Nexus", "Evolution", "The Kliq"]}, {"q": "Which masked NJPW junior-heavyweight legend wears a horned 'Thunder' costume?", "correct": "Jushin Thunder Liger", "wrong": ["Tiger Mask", "The Great Sasuke", "Ultimo Dragon"]}, {"q": "AJPW's top championship is known as the what?", "correct": "Triple Crown", "wrong": ["IWGP Heavyweight", "GHC", "PWF only"]}, {"q": "Which Texan, famed for the lariat, was a top foreign star in Japan?", "correct": "Stan Hansen", "wrong": ["Terry Funk", "Vader", "Bruiser Brody"]}, {"q": "Which masked monster heel was a top star as 'Big Van Vader' in Japan and WCW?", "correct": "Vader", "wrong": ["Bam Bam Bigelow", "King Kong Bundy", "Sid Vicious"]}, {"q": "Which Mexican-American wrestling family of brothers includes Eddie?", "correct": "The Guerreros", "wrong": ["The Mysterios", "The Von Erichs", "The Harts"]}, {"q": "Eddie Guerrero's famous motto was 'I Lie, I Cheat, and I' what?", "correct": "Steal", "wrong": ["Win", "Fly", "Fight"]}, {"q": "Which Detroit-area stadium hosted WrestleMania III in 1987?", "correct": "The Pontiac Silverdome", "wrong": ["The Astrodome", "Madison Square Garden", "SkyDome"]}, {"q": "Goldberg built his famous long winning streak in which promotion?", "correct": "WCW", "wrong": ["WWF", "ECW", "NJPW"]}, {"q": "Which character built the 'Million Dollar Man' gimmick in WWF?", "correct": "Ted DiBiase", "wrong": ["Bobby Heenan", "Jimmy Hart", "Mr. Fuji"]}, {"q": "Misawa and Kobashi were 1990s aces of which Japanese promotion?", "correct": "All Japan Pro Wrestling", "wrong": ["New Japan Pro-Wrestling", "Pro Wrestling NOAH", "FMW"]}, {"q": "Which promotion did Misawa found in 2000 after leaving All Japan?", "correct": "Pro Wrestling NOAH", "wrong": ["Dragon Gate", "Zero-One", "Pancrase"]}, {"q": "The 'German suplex' and 'brainbuster' are types of what?", "correct": "Suplexes/throws", "wrong": ["Submission holds", "Aerial dives", "Strikes"]}, {"q": "Which WWE event's winner earns a guaranteed title shot via a briefcase?", "correct": "Money in the Bank", "wrong": ["King of the Ring", "Royal Rumble", "Elimination Chamber"]}, {"q": "Lou Thesz is a legendary multi-time holder of which historic title?", "correct": "The NWA World Heavyweight Championship", "wrong": ["The WWF Championship", "The IWGP title", "The AWA World title"]}, {"q": "Which Minneapolis-based promotion was run by Verne Gagne?", "correct": "The AWA", "wrong": ["WCW", "ECW", "Mid-South"]}, {"q": "The 'Tres Grandes' of lucha libre are El Santo, Blue Demon and who?", "correct": "Mil Mascaras", "wrong": ["Perro Aguayo", "Octagon", "Rey Mysterio"]}, {"q": "Who did Steve Austin beat at King of the Ring 1996, sparking the 'Austin 3:16' promo?", "correct": "Jake Roberts", "wrong": ["Bret Hart", "Marc Mero", "Vader"]}, {"q": "Which faction featured Triple H, Ric Flair, Randy Orton and Batista?", "correct": "Evolution", "wrong": ["The Nexus", "D-Generation X", "The Corporation"]}, {"q": "Which US city was the home base of ECW?", "correct": "Philadelphia", "wrong": ["New York", "Chicago", "Atlanta"]}, {"q": "Paul Heyman became the on-screen advocate for which 'Beast' in WWE?", "correct": "Brock Lesnar", "wrong": ["Goldberg", "Big Show", "Braun Strowman"]}, {"q": "How many straight WrestleMania wins did The Undertaker's streak reach before it ended?", "correct": "21", "wrong": ["18", "25", "30"]}, {"q": "Shawn Michaels retired in 2010 after losing a WrestleMania match to whom?", "correct": "The Undertaker", "wrong": ["Triple H", "Bret Hart", "John Cena"]}, {"q": "Ric Flair's signature submission hold is the ___.", "correct": "Figure-Four Leglock", "wrong": ["Sharpshooter", "Crossface", "Ankle Lock"]}, {"q": "Which famous NWA/WCW faction was led by Ric Flair?", "correct": "The Four Horsemen", "wrong": ["The nWo", "Evolution", "The Dangerous Alliance"]}, {"q": "Dusty Rhodes was billed as 'The American ___'.", "correct": "Dream", "wrong": ["Nightmare", "Hero", "Bison"]}, {"q": "'Hacksaw' Jim Duggan carried which item to the ring?", "correct": "A 2x4 wooden plank", "wrong": ["A steel chair", "A baseball bat", "A branding iron"]}, {"q": "The 'British Bulldog' was the ring name of which wrestler?", "correct": "Davey Boy Smith", "wrong": ["Dynamite Kid", "William Regal", "Wade Barrett"]}, {"q": "Davey Boy Smith beat Bret Hart at SummerSlam 1992 in which London stadium?", "correct": "Wembley Stadium", "wrong": ["The O2 Arena", "Twickenham", "Old Trafford"]}, {"q": "Antonio Inoki later served in Japan as a what?", "correct": "Politician", "wrong": ["Sumo coach", "Film director", "Baseball manager"]}, {"q": "Keiji Mutoh wrestled in WCW under which face-painted gimmick?", "correct": "The Great Muta", "wrong": ["The Great Sasuke", "Jushin Liger", "Hakushi"]}, {"q": "The Great Muta is famous for spraying what at opponents?", "correct": "Green mist", "wrong": ["Black powder", "Water", "Confetti"]}, {"q": "Stan Hansen's devastating finishing move was the ___.", "correct": "Western Lariat", "wrong": ["Brainbuster", "Backdrop", "Cobra Clutch"]}, {"q": "The Sharpshooter/Scorpion Deathlock is widely credited to which Japanese star?", "correct": "Riki Choshu", "wrong": ["Antonio Inoki", "Tatsumi Fujinami", "Tiger Mask"]}, {"q": "The Iron Sheik lost the WWF title in 1984 to which man, sparking Hulkamania?", "correct": "Hulk Hogan", "wrong": ["Bob Backlund", "Andre the Giant", "Randy Savage"]}, {"q": "Which manager was known as 'The Brain' in WWF?", "correct": "Bobby Heenan", "wrong": ["Jim Cornette", "Paul Bearer", "Slick"]}, {"q": "The tragic 'Von Erich' wrestling brothers were Kevin, David and ___.", "correct": "Kerry", "wrong": ["Bruce", "Shane", "Mike Rotunda"]}], "3": [{"q": "Who was crowned the first-ever IWGP Heavyweight Champion (1987)?", "correct": "Antonio Inoki", "wrong": ["Tatsumi Fujinami", "Riki Choshu", "Big Van Vader"]}, {"q": "Antonio Inoki fought which boxer in a famous 1976 mixed-rules bout?", "correct": "Muhammad Ali", "wrong": ["Joe Frazier", "George Foreman", "Chuck Wepner"]}, {"q": "Rikidozan, godfather of puroresu, trained Inoki and which other legend?", "correct": "Giant Baba", "wrong": ["Tiger Mask", "Jumbo Tsuruta", "Riki Choshu"]}, {"q": "Inoki sold his NJPW stake in 2005 to which video-game company?", "correct": "Yuke's", "wrong": ["Bandai", "Konami", "Capcom"]}, {"q": "Which British wrestler, cousin of Davey Boy Smith, had classics with Tiger Mask?", "correct": "Dynamite Kid", "wrong": ["Mark Rocco", "Marty Jones", "Johnny Saint"]}, {"q": "Arena Mexico, the 'cathedral of lucha libre', is in which city?", "correct": "Mexico City", "wrong": ["Guadalajara", "Monterrey", "Tijuana"]}, {"q": "Which flashier lucha promotion did Antonio Pena found in 1992?", "correct": "AAA", "wrong": ["CMLL", "UWA", "IWRG"]}, {"q": "Salvador Lutteroth was inspired to launch lucha libre after seeing wrestling where?", "correct": "In Texas, USA", "wrong": ["In Spain", "In Japan", "In Cuba"]}, {"q": "The 1952 mask-vs-mask classic that boosted EMLL saw El Santo face whom?", "correct": "Black Shadow", "wrong": ["Blue Demon", "Gory Guerrero", "Cavernario Galindo"]}, {"q": "Which ITV executive cancelled World of Sport wrestling in 1988?", "correct": "Greg Dyke", "wrong": ["Lew Grade", "Michael Grade", "John Birt"]}, {"q": "Big Daddy and Giant Haystacks sold out which London venue in 1981?", "correct": "Wembley Arena", "wrong": ["The Royal Albert Hall", "Earls Court", "The O2"]}, {"q": "Kendo Nagasaki was unmasked on TV in 1975 by which wrestler?", "correct": "Big Daddy", "wrong": ["Mick McManus", "Giant Haystacks", "Count Bartelli"]}, {"q": "The 'Four Pillars of Heaven' were four 1990s stars of which promotion?", "correct": "All Japan Pro Wrestling", "wrong": ["New Japan Pro-Wrestling", "Pro Wrestling NOAH", "FMW"]}, {"q": "Who beat Misawa for the Triple Crown the day before Baba's death (Jan 1999)?", "correct": "Toshiaki Kawada", "wrong": ["Kenta Kobashi", "Akira Taue", "Jumbo Tsuruta"]}, {"q": "Which 1999 WCW title change is mocked as the 'Fingerpoke of Doom'?", "correct": "Hogan beating Nash", "wrong": ["Sting beating Hogan", "Goldberg beating Nash", "Flair beating Hogan"]}, {"q": "Which NWA/WCW flagship event was launched by Jim Crockett in 1983?", "correct": "Starrcade", "wrong": ["Halloween Havoc", "Bash at the Beach", "SuperBrawl"]}, {"q": "The tragic Von Erich wrestling family was based in which US state?", "correct": "Texas", "wrong": ["Tennessee", "Florida", "Georgia"]}, {"q": "Which deathmatch promotion did Atsushi Onita found in 1989?", "correct": "FMW", "wrong": ["Big Japan", "NOAH", "Dragon Gate"]}, {"q": "The G1 Climax round-robin tournament is run by which promotion?", "correct": "NJPW", "wrong": ["AJPW", "NOAH", "DDT"]}, {"q": "Which strongman founded the European CWA promotion?", "correct": "Otto Wanz", "wrong": ["Axel Dieter", "Franz Schumann", "Rene Lasartesse"]}, {"q": "Otto Wanz was famous for which strongman feat?", "correct": "Tearing phone books in half", "wrong": ["Bending iron bars", "Lifting cars", "Eating glass"]}, {"q": "What French word is used for professional wrestling in France?", "correct": "Catch", "wrong": ["Lutte", "Ringen", "Combat"]}, {"q": "Who won the very first Royal Rumble match in 1988?", "correct": "Hacksaw Jim Duggan", "wrong": ["Hulk Hogan", "One Man Gang", "Randy Savage"]}, {"q": "Who ended Goldberg's undefeated streak at WCW's Starrcade 1998?", "correct": "Kevin Nash", "wrong": ["Hulk Hogan", "Sting", "Bret Hart"]}, {"q": "Bret Hart jumped to WCW in 1997 after which controversy?", "correct": "The Montreal Screwjob", "wrong": ["The Curtain Call", "The Higher Power angle", "The Plane Ride from Hell"]}, {"q": "Dynamite Kid's real name was what?", "correct": "Tom Billington", "wrong": ["Davey Boy Smith", "Owen Hart", "Mark Rocco"]}, {"q": "Mil Mascaras debuted in EMLL in which decade?", "correct": "The 1960s", "wrong": ["The 1940s", "The 1980s", "The 1990s"]}, {"q": "Which luchador-priest inspired the film 'Nacho Libre'?", "correct": "Fray Tormenta", "wrong": ["El Santo", "Mil Mascaras", "Mistico"]}, {"q": "CMLL's tournament honouring Blue Demon is the 'Leyenda de' what?", "correct": "Azul", "wrong": ["Plata", "Oro", "Rojo"]}, {"q": "Which promotion did Ray Mendoza found in 1975 to rival EMLL?", "correct": "UWA", "wrong": ["AAA", "IWRG", "CMLL"]}, {"q": "Who became the first Asian to (briefly) hold the WWF title, in 1979?", "correct": "Antonio Inoki", "wrong": ["Giant Baba", "Riki Choshu", "Tatsumi Fujinami"]}, {"q": "Which 'Ace' led NJPW's resurgence in the late 2000s and 2010s?", "correct": "Hiroshi Tanahashi", "wrong": ["Kazuchika Okada", "Kenny Omega", "Shinsuke Nakamura"]}, {"q": "Kazuchika Okada's finishing move is known as the what?", "correct": "Rainmaker", "wrong": ["Styles Clash", "One-Winged Angel", "Boma Ye"]}, {"q": "Which technician was billed as 'The Man of 1,000 Holds'?", "correct": "Dean Malenko", "wrong": ["Chris Jericho", "Eddie Guerrero", "Rey Mysterio"]}, {"q": "Which promotion is associated with the 'King's Road' wrestling style?", "correct": "All Japan Pro Wrestling", "wrong": ["New Japan Pro-Wrestling", "Pro Wrestling NOAH", "CMLL"]}, {"q": "WWE's first 'Sin Cara' had been which CMLL masked star?", "correct": "Mistico", "wrong": ["Rey Mysterio", "Averno", "La Sombra"]}, {"q": "Lou ___ held the NWA World title for over seven years in the 1950s.", "correct": "Thesz", "wrong": ["Rogers", "Gagne", "Brisco"]}, {"q": "World of Sport bouts were scored by falls, submissions and what?", "correct": "Knockouts", "wrong": ["Pinfalls only", "Judges' points", "Time limits"]}, {"q": "Which masked British icon's real name was Peter Thornley?", "correct": "Kendo Nagasaki", "wrong": ["Count Bartelli", "Catweazle", "Rollerball Rocco"]}, {"q": "Which junior-heavyweight maestro retired from NJPW unbeaten as Tiger Mask?", "correct": "Satoru Sayama", "wrong": ["Jushin Liger", "The Great Sasuke", "Ultimo Dragon"]}, {"q": "Who was the first AJPW Triple Crown Heavyweight Champion, in 1989?", "correct": "Jumbo Tsuruta", "wrong": ["Mitsuharu Misawa", "Genichiro Tenryu", "Stan Hansen"]}, {"q": "The 'Dragon Suplex' is named after which NJPW legend, 'The Dragon'?", "correct": "Tatsumi Fujinami", "wrong": ["Antonio Inoki", "Jushin Liger", "Riki Choshu"]}, {"q": "NJPW's biggest show, held every January 4 at the Tokyo Dome, is called ___.", "correct": "Wrestle Kingdom", "wrong": ["Dominion", "Sakura Genesis", "The New Beginning"]}, {"q": "Kenny Omega's devastating finishing move is the ___.", "correct": "One-Winged Angel", "wrong": ["Rainmaker", "Styles Clash", "Kinshasa"]}, {"q": "The 'Bullet Club' stable was formed in which promotion?", "correct": "NJPW", "wrong": ["AJPW", "NOAH", "AEW"]}, {"q": "AJ Styles' signature finishing move is the ___.", "correct": "Styles Clash", "wrong": ["One-Winged Angel", "Kinshasa", "Sharpshooter"]}, {"q": "Shinsuke Nakamura's knee-strike finisher (formerly 'Boma Ye') is the ___.", "correct": "Kinshasa", "wrong": ["Rainmaker", "Bloody Sunday", "Go To Sleep"]}, {"q": "AAA's biggest annual event, its version of WrestleMania, is called ___.", "correct": "Triplemania", "wrong": ["Rey de Reyes", "Verano de Escandalo", "Guerra de Titanes"]}, {"q": "CMLL's biggest annual show celebrates the promotion's founding and is called the ___.", "correct": "Aniversario", "wrong": ["Triplemania", "Fantastica Mania", "Rey de Reyes"]}, {"q": "Lucha libre matches are traditionally contested under which rule?", "correct": "Best two-out-of-three falls", "wrong": ["A single fall", "An Iron Man time limit", "First blood"]}, {"q": "Which British wrestler portrayed the masked 'Black Tiger', rival to Tiger Mask, in NJPW?", "correct": "Mark Rocco", "wrong": ["Marty Jones", "Dynamite Kid", "Johnny Saint"]}, {"q": "Which WWE legend later wrestled as 'Black Tiger' in NJPW?", "correct": "Eddie Guerrero", "wrong": ["Chris Jericho", "Dean Malenko", "Rey Mysterio"]}, {"q": "Which 'scientific' British wrestler was renowned as a technical master on World of Sport?", "correct": "Johnny Saint", "wrong": ["Mick McManus", "Big Daddy", "Giant Haystacks"]}, {"q": "Genichiro Tenryu was a celebrated 1980s rival to Jumbo Tsuruta in which promotion?", "correct": "All Japan Pro Wrestling", "wrong": ["New Japan Pro-Wrestling", "Pro Wrestling NOAH", "FMW"]}, {"q": "Mitsuharu Misawa first rose to fame under which masked gimmick?", "correct": "Tiger Mask II", "wrong": ["Jushin Liger", "Black Tiger", "The Great Sasuke"]}, {"q": "Kenta Kobashi's rarely-used, devastating finisher is the ___.", "correct": "Burning Hammer", "wrong": ["Emerald Flowsion", "Tiger Driver", "Rainmaker"]}, {"q": "Tetsuya Naito leads which popular NJPW faction?", "correct": "Los Ingobernables de Japon", "wrong": ["Bullet Club", "Chaos", "Suzuki-gun"]}, {"q": "Which promotion runs the annual 'Best of the Super Juniors' tournament?", "correct": "NJPW", "wrong": ["AJPW", "NOAH", "Dragon Gate"]}, {"q": "Konnan was a crossover lucha star who also headlined prominently in which US promotion?", "correct": "WCW", "wrong": ["WWF", "ECW", "TNA"]}, {"q": "Jushin Thunder Liger's real name is ___.", "correct": "Keiichi Yamada", "wrong": ["Satoru Sayama", "Keiji Mutoh", "Shinya Hashimoto"]}], "4": [{"q": "Giant Baba and Antonio Inoki made their pro debuts on the same day in which year?", "correct": "1960", "wrong": ["1954", "1966", "1972"]}, {"q": "Before wrestling, Giant Baba played pro baseball for which team?", "correct": "The Yomiuri Giants", "wrong": ["The Hanshin Tigers", "The Yakult Swallows", "The Chunichi Dragons"]}, {"q": "Antonio Inoki's ring name was an homage to which earlier wrestler?", "correct": "Antonino Rocca", "wrong": ["Lou Thesz", "Karl Gotch", "Rikidozan"]}, {"q": "Inoki's first NJPW match (1972) was against which catch-wrestling master?", "correct": "Karl Gotch", "wrong": ["Lou Thesz", "Billy Robinson", "Dory Funk Jr."]}, {"q": "Karl Gotch was so revered in Japan that he earned which nickname?", "correct": "Kami-sama (God of Wrestling)", "wrong": ["Sensei", "Oyabun", "The Shooter"]}, {"q": "EMLL (now CMLL) was founded by Salvador Lutteroth in which year?", "correct": "1933", "wrong": ["1923", "1943", "1956"]}, {"q": "Arena Mexico, lucha's 'cathedral', was built in which year?", "correct": "1956", "wrong": ["1933", "1943", "1965"]}, {"q": "Whose 1940 hair-vs-mask loss to Octavio Gaona was lucha's first famous apuesta?", "correct": "Murcielago Velazquez", "wrong": ["El Santo", "Black Shadow", "Gory Guerrero"]}, {"q": "The first CMLL 'Leyenda de Azul' (2000) was won by which masked veteran?", "correct": "Blue Panther", "wrong": ["Atlantis", "Negro Casas", "Ultimo Guerrero"]}, {"q": "El Canek and Dos Caras were 1980s headliners of which Mexican promotion?", "correct": "UWA", "wrong": ["AAA", "IWRG", "CMLL"]}, {"q": "In 1993 Giant Baba made a comeback teaming with which old rival?", "correct": "Stan Hansen", "wrong": ["Bruiser Brody", "Abdullah the Butcher", "Terry Gordy"]}, {"q": "The original Tiger Mask (Sayama) famously retired from NJPW with what record?", "correct": "Undefeated", "wrong": ["A single loss", "A losing record", "Exactly even"]}, {"q": "Rikidozan, who trained Inoki and Baba, was murdered in which year?", "correct": "1963", "wrong": ["1958", "1969", "1971"]}, {"q": "Inoki and Baba's famed JWA tag team was known as what?", "correct": "The B-I Cannon", "wrong": ["The Yamato Express", "The Rising Suns", "The Tokyo Two"]}, {"q": "Besides NJPW, which promotion split off from the JWA in 1972?", "correct": "All Japan Pro Wrestling", "wrong": ["Pro Wrestling NOAH", "FMW", "UWFi"]}, {"q": "British heel Mick McManus died in 2013 at what age?", "correct": "93", "wrong": ["83", "88", "99"]}, {"q": "Big Daddy (Shirley Crabtree) had which earlier career before wrestling?", "correct": "Coal miner and Coldstream Guard", "wrong": ["Boxer and bouncer", "Rugby player", "Circus strongman"]}, {"q": "Giant Haystacks' real name was what?", "correct": "Martin Ruane", "wrong": ["Shirley Crabtree", "Geoff Condliffe", "Brian Glover"]}, {"q": "Which masked veteran, real name Geoff Condliffe, mentored Kendo Nagasaki?", "correct": "Count Bartelli", "wrong": ["Mick McManus", "Jackie Pallo", "Les Kellett"]}, {"q": "Pro Wrestling NOAH's top title is the ___ Heavyweight Championship.", "correct": "GHC", "wrong": ["IWGP", "Triple Crown", "PWF"]}, {"q": "The CWA promotion founded by Otto Wanz was based mainly in which two countries?", "correct": "Austria and Germany", "wrong": ["France and Belgium", "Italy and Spain", "Switzerland and Poland"]}, {"q": "The 1976 Inoki vs Muhammad Ali bout is credited as an early forerunner of which sport?", "correct": "Mixed martial arts (MMA)", "wrong": ["Kickboxing", "Sumo", "Sambo"]}, {"q": "The Funk family (Dory and Terry) ran a famous territory in which Texas city?", "correct": "Amarillo", "wrong": ["Dallas", "Houston", "El Paso"]}, {"q": "World Class Championship Wrestling, home of the Von Erichs, was based in which city?", "correct": "Dallas", "wrong": ["Houston", "Memphis", "Atlanta"]}, {"q": "Which promotion is nicknamed the 'King of Sports'?", "correct": "New Japan Pro-Wrestling", "wrong": ["All Japan Pro Wrestling", "Pro Wrestling NOAH", "Dragon Gate"]}, {"q": "Jushin Liger's character is based on an anime by which manga creator?", "correct": "Go Nagai", "wrong": ["Akira Toriyama", "Eiichiro Oda", "Masami Kurumada"]}, {"q": "In lucha libre, a 'rudo' is which type of wrestler?", "correct": "A villain", "wrong": ["A hero", "A high-flyer", "A referee"]}, {"q": "In lucha libre, a fan-favourite hero is called a what?", "correct": "Tecnico", "wrong": ["Rudo", "Exotico", "Mini"]}, {"q": "Which catch-wrestler is widely credited with refining the German suplex in Japan?", "correct": "Karl Gotch", "wrong": ["Billy Robinson", "Lou Thesz", "Danny Hodge"]}, {"q": "Catch wrestler Billy Robinson honed his craft at the 'Snake Pit' gym in which English town?", "correct": "Wigan", "wrong": ["London", "Liverpool", "Leeds"]}, {"q": "The famous 'Snake Pit' catch-wrestling gym in Wigan was run by which Riley?", "correct": "Billy Riley", "wrong": ["Bob Riley", "Karl Riley", "Jack Riley"]}, {"q": "Catch-as-catch-can wrestling, ancestor of the pro style, originated in which country?", "correct": "England", "wrong": ["The USA", "Mexico", "Japan"]}, {"q": "Which 1980s Japanese women's promotion was home of the 'Crush Gals'?", "correct": "All Japan Women's", "wrong": ["JWP", "Stardom", "GAEA Japan"]}, {"q": "A lucha dive head-first through the ropes to the floor is called a what?", "correct": "Tope", "wrong": ["Senton", "Moonsault", "Plancha"]}, {"q": "Which beloved foreign brawler, 'Bruiser ___', was murdered in Puerto Rico in 1988?", "correct": "Brody", "wrong": ["Hansen", "Funk", "Vachon"]}, {"q": "Abdullah the Butcher, the 'Madman from Sudan', actually hailed from where?", "correct": "Canada", "wrong": ["Sudan", "The USA", "Egypt"]}, {"q": "Which comedic British fan-favourite wrestled under the name 'Catweazle'?", "correct": "Gary Cooper", "wrong": ["Les Kellett", "Jackie Pallo", "Bobby Barnes"]}, {"q": "Which flamboyant Welsh wrestler pioneered an androgynous 'exotic' gimmick?", "correct": "Adrian Street", "wrong": ["Jackie Pallo", "Mark Rocco", "Rollerball Rocco"]}, {"q": "Which AAA founder had previously been a creative booker in CMLL?", "correct": "Antonio Pena", "wrong": ["Konnan", "Ray Mendoza", "Salvador Lutteroth"]}, {"q": "Which manga-named NJPW junior wore a winged costume and used the 'shooting star press' era moves?", "correct": "Jushin Thunder Liger", "wrong": ["The Great Sasuke", "Ultimo Dragon", "Black Tiger"]}, {"q": "Rikidozan, founder of Japanese pro wrestling, was actually of which ethnicity?", "correct": "Korean", "wrong": ["Chinese", "Mongolian", "Filipino"]}, {"q": "Buddy Rogers was named the first champion of which company (later WWE) in 1963?", "correct": "The WWWF", "wrong": ["The NWA", "The AWA", "WCW"]}, {"q": "Which wrestler began the longest title reign in WWE history (over 2,800 days) in 1963?", "correct": "Bruno Sammartino", "wrong": ["Buddy Rogers", "Bob Backlund", "Pedro Morales"]}, {"q": "Frank Gotch won the world title in 1908 by beating which 'Russian Lion'?", "correct": "George Hackenschmidt", "wrong": ["Ed Lewis", "Stanislaus Zbyszko", "Jim Londos"]}, {"q": "The 'Thesz Press', later used by Stone Cold, is named after which legend?", "correct": "Lou Thesz", "wrong": ["Verne Gagne", "Frank Gotch", "Karl Gotch"]}, {"q": "Eddie Guerrero's father, who innovated the 'Gory Special' hold, was named ___.", "correct": "Gory Guerrero", "wrong": ["Mando Guerrero", "Chavo Guerrero Sr.", "Hector Guerrero"]}, {"q": "El Santo's real name was ___.", "correct": "Rodolfo Guzman Huerta", "wrong": ["Alejandro Munoz Moreno", "Aaron Rodriguez", "Daniel Lopez"]}, {"q": "Before becoming Tiger Mask, Satoru Sayama wrestled in Britain under which name?", "correct": "Sammy Lee", "wrong": ["Black Tiger", "Kung Fu", "Mr. Saito"]}, {"q": "Kent Walton was the long-time commentary voice of which programme?", "correct": "World of Sport wrestling", "wrong": ["Match of the Day", "Grandstand", "Sportsnight"]}, {"q": "Verne Gagne's training camp produced which future 16-time world champion?", "correct": "Ric Flair", "wrong": ["Hulk Hogan", "Dusty Rhodes", "Harley Race"]}, {"q": "Which Canadian patriarch ran the famous 'Dungeon' training camp in Calgary?", "correct": "Stu Hart", "wrong": ["Bret Hart", "Owen Hart", "Jim Neidhart"]}, {"q": "Which AJPW founder declared Jumbo Tsuruta the company's new 'Ace' in 1983?", "correct": "Giant Baba", "wrong": ["Antonio Inoki", "Rikidozan", "Riki Choshu"]}, {"q": "Rikidozan's signature crowd-pleasing strike was the ___.", "correct": "Karate chop", "wrong": ["Lariat", "Headbutt", "Dropkick"]}, {"q": "Chris Jericho holds the distinction of being the first ever ___ World Champion.", "correct": "AEW", "wrong": ["WCW", "ECW", "NXT"]}, {"q": "Antonino Rocca, the namesake of Antonio Inoki's ring name, was a 1950s star in which city?", "correct": "New York", "wrong": ["Tokyo", "Mexico City", "Chicago"]}, {"q": "Jim Londos, a 1930s box-office sensation, was nicknamed the 'Golden ___'.", "correct": "Greek", "wrong": ["Boy", "Lion", "Bull"]}, {"q": "The IWGP Heavyweight Championship was established in which decade?", "correct": "The 1980s", "wrong": ["The 1960s", "The 1970s", "The 1990s"]}, {"q": "Big Daddy's famous sequinned leotard bore which single letter?", "correct": "D", "wrong": ["B", "X", "W"]}, {"q": "Stanislaus Zbyszko and Ed 'Strangler' Lewis were stars of which era?", "correct": "The early 1900s to 1920s", "wrong": ["The 1950s", "The 1980s", "The 1990s"]}, {"q": "Genichiro Tenryu shocked All Japan in 1990 by jumping to which big-money startup promotion?", "correct": "SWS", "wrong": ["NOAH", "FMW", "UWF"]}]};
+  const LVL_NAMES={1:"LEVEL 1 · EASY",2:"LEVEL 2 · MEDIUM",3:"LEVEL 3 · HARD",4:"LEVEL 4 · LEGENDS"};
+  const LVL_COLOR={1:getCSS('--l1'),2:getCSS('--l2'),3:getCSS('--l3'),4:getCSS('--l4')};
+  function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  const KEYS=['A','B','C','D'];
+  const CHECK='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#33c98a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CROSS='<svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#ff5d7a" stroke-width="3" stroke-linecap="round"/></svg>';
+
+  // ============ audio ============
+  let actx=null;
+  function ensureAudio(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}}
+  function beep(f,d=0.12,type='sine',vol=0.16){if(!actx)return;const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=f;o.connect(g);g.connect(actx.destination);const t=actx.currentTime;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+d);
+    o.start(t);o.stop(t+d+0.02);}
+  const sRight=()=>{beep(660,0.09,'sine',0.16);setTimeout(()=>beep(990,0.11,'sine',0.14),80);};
+  const sWrong=()=>{beep(200,0.22,'sawtooth',0.15);};
+  const sUp=()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.12,'triangle',0.15),i*70));};
+  const sDown=()=>{[523,415,330].forEach((f,i)=>setTimeout(()=>beep(f,0.13,'triangle',0.14),i*80));};
+  const sDone=()=>{[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,0.14,'sine',0.16),i*90));};
+  const sOut=()=>{[330,262,196].forEach((f,i)=>setTimeout(()=>beep(f,0.22,'triangle',0.15),i*130));};
+
+  // ============ state ============
+  let level,answered,correct,totalWrong,streakC,streakW,current,opts,locked,pendingMove;
+  let startT=0,timerId=null;
+
+  const $=id=>document.getElementById(id);
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  let queues,ptr;
+
+  function startGame(){
+    level=1;answered=0;correct=0;totalWrong=0;streakC=0;streakW=0;locked=false;pendingMove=null;
+    queues={1:shuffle(BANK[1]),2:shuffle(BANK[2]),3:shuffle(BANK[3]),4:shuffle(BANK[4])}; ptr={1:0,2:0,3:0,4:0};
+    hideAllScreens();
+    playing=true; startT=performance.now(); runTimer();
+    renderStrikes(); nextQuestion();
+  }
+
+  let TIME_LIMIT=120000;   // countdown length, set by the clock selector
+  let playing=false;
+  function remainingMs(){ return Math.max(0, TIME_LIMIT-(performance.now()-startT)); }
+  function tickTimer(){
+    const rem=remainingMs();
+    const el=$('timer'); el.textContent=fmt(rem);
+    const w=el.parentElement;
+    if(rem<=15000) w.classList.add('low'); else w.classList.remove('low');
+    if(rem<=0 && playing){ stopTimer(); endTimeUp(); }
+  }
+  function runTimer(){ clearInterval(timerId); tickTimer(); timerId=setInterval(tickTimer,150); }
+  function stopTimer(){ clearInterval(timerId); }
+  function fmt(ms){const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+
+  function drawQuestion(){
+    const pool=queues[level];
+    if(ptr[level]>=pool.length){ queues[level]=shuffle(BANK[level]); ptr[level]=0; }
+    return queues[level][ptr[level]++];
+  }
+
+  function nextQuestion(){
+    current=drawQuestion();
+    opts=shuffle([current.correct,...current.wrong]);
+    // HUD
+    $('lvlPill').textContent=LVL_NAMES[level];
+    $('lvlPill').style.background=LVL_COLOR[level];
+    $('qcount').textContent='QUESTION '+(answered+1)+' OF 20';
+    $('progbar').style.width=(answered/20*100)+'%';
+    $('qtext').textContent=current.q;
+    const box=$('opts'); box.className='opts'; box.innerHTML='';
+    opts.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='opt';
+      b.innerHTML='<span class="key">'+KEYS[i]+'</span><span class="txt">'+o+'</span><span style="width:24px;flex:none"></span>';
+      b.addEventListener('click',()=>answer(o,b));
+      box.appendChild(b);
+    });
+    locked=false;
+  }
+
+  function renderStrikes(){
+    const el=$('strikes'); el.innerHTML='';
+    for(let i=0;i<4;i++){const s=document.createElement('span');s.className='strike'+(i<totalWrong?' used':'');el.appendChild(s);}
+  }
+
+  function toast(msg,color){
+    const t=$('toast'); t.textContent=msg; t.style.background=color; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),1100);
+  }
+
+  function answer(choice,btn){
+    if(locked) return; locked=true;
+    const right=(choice===current.correct);
+    answered++;
+    const box=$('opts'); box.classList.add('locked');
+    // reveal
+    [...box.children].forEach(c=>{
+      const label=c.querySelector('.txt').textContent;
+      const mark=c.lastElementChild;
+      if(label===current.correct){ c.classList.add('correct'); mark.outerHTML=CHECK; }
+      else if(c===btn){ c.classList.add('wrong'); mark.outerHTML=CROSS; }
+      else c.classList.add('dim');
+    });
+
+    if(right){
+      correct++; sRight(); streakW=0; streakC++;
+      if(streakC>=2 && level<4){ level++; streakC=0; pendingMove='up'; }
+    } else {
+      totalWrong++; sWrong(); streakC=0; streakW++;
+      renderStrikes();
+      if(totalWrong<4 && streakW>=2 && level>1){ level--; streakW=0; pendingMove='down'; }
+    }
+    $('progbar').style.width=(answered/20*100)+'%';
+
+    setTimeout(()=>{
+      if(!playing) return;
+      if(totalWrong>=4){ endOut(); return; }
+      if(answered>=20){ endDone(); return; }
+      if(pendingMove==='up'){ toast('Level Up!',LVL_COLOR[level]); sUp(); }
+      else if(pendingMove==='down'){ toast('Level Down',LVL_COLOR[level]); sDown(); }
+      pendingMove=null;
+      nextQuestion();
+    }, right?780:1050);
+  }
+
+  function endOut(){
+    playing=false; stopTimer(); sOut();
+    $('outAns').textContent=answered; $('outCorr').textContent=correct;
+    lastRun={correct:correct,level:level,timeLeft:remainingMs()};
+    show('outScreen');
+  }
+  function endDone(){
+    playing=false; stopTimer(); sDone();
+    $('doneTime').textContent=fmt(remainingMs());
+    $('doneCorr').textContent=correct;
+    $('doneLvl').textContent='LEVEL '+level;
+    $('doneAns').textContent=answered;
+    lastRun={correct:correct,level:level,timeLeft:remainingMs()};
+    show('doneScreen');
+  }
+  function endTimeUp(){
+    playing=false; stopTimer(); sOut();
+    $('tuAns').textContent=answered; $('tuCorr').textContent=correct;
+    lastRun={correct:correct,level:level,timeLeft:remainingMs()};
+    show('timeupScreen');
+  }
+
+  // ============ screen helpers ============
+  const SCREENS=['startScreen','outScreen','doneScreen','timeupScreen','boardScreen'];
+  function hideAllScreens(){SCREENS.forEach(s=>$(s).classList.add('hidden'));}
+  function show(id){hideAllScreens();$(id).classList.remove('hidden');}
+
+  // ============ wiring ============
+  function toMenu(){ ensureAudio(); playing=false; stopTimer(); show('startScreen'); }
+  $('startBtn').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneAgain').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('outRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('tuRetry').addEventListener('click',()=>{ensureAudio();startGame();});
+  $('doneMenu').addEventListener('click',toMenu);
+  $('outMenu').addEventListener('click',toMenu);
+  $('tuMenu').addEventListener('click',toMenu);
+  // keyboard 1-4 to answer
+  window.addEventListener('keydown',e=>{
+    if(e.target&&e.target.tagName==='INPUT')return;
+    if(playing){
+      const n=parseInt(e.key,10);
+      if(n>=1&&n<=4){const b=$('opts').children[n-1]; if(b)b.click();}
+    }
+  });
+
+  // start on menu
+  renderStrikes();
+  // ---- clock selector ----
+  const TIME_OPTS=[{n:'Chill',ms:180000,l:'3:00'},{n:'Classic',ms:120000,l:'2:00'},{n:'Hard',ms:90000,l:'1:30'}];
+  (function(){ const row=$('timeRow'); if(!row) return;
+    TIME_OPTS.forEach(o=>{ const b=document.createElement('button');
+      b.className='timeopt'+(o.ms===TIME_LIMIT?' sel':''); b.textContent=o.n+' · '+o.l;
+      b.addEventListener('click',()=>{ ensureAudio(); TIME_LIMIT=o.ms;
+        [...row.children].forEach(c=>c.classList.remove('sel')); b.classList.add('sel'); beep(560,0.06,'sine',0.12); });
+      row.appendChild(b); });
+  })();
+  // ===================== LEADERBOARD =====================
+  // Local by default (private to this device). If you fill in the shared-board
+  // CONFIG below AND a player types a group code on the start screen, that group
+  // competes on one shared board. See the setup guide for the 5-minute setup.
+  //
+  // ----------------------- SHARED BOARD CONFIG ----------------------
+  const SB_URL = 'https://cgrbwtcydgfkbqhseeap.supabase.co';   // your Project URL
+  const SB_KEY = 'sb_publishable_YHNDjX8gcSYJYJVWo_TmMw_8z6BBVAU';   // Supabase publishable key
+  // ------------------------------------------------------------------
+  const QUIZ_ID='qc_wrestling-quiz';   // identifies this quiz on the shared board
+  const NAME_KEY='qc_name', GROUP_KEY='qc_group';
+  let lastRun=null, BOARD=[], boardBusy=false;
+  function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function groupCode(){ return ((lsGet(GROUP_KEY)||'').trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'')).slice(0,24); }
+  function shared(){ return !!(SB_URL && SB_KEY && groupCode()); }
+  function cmpRun(a,b){ return (b.correct-a.correct)||(b.level-a.level)||(b.timeLeft-a.timeLeft)||(a.t-b.t); }
+  function fmtScore(r){ return r.correct+'/20 \u00b7 L'+r.level+' \u00b7 '+fmt(r.timeLeft)+' left'; }
+
+  // ---- local store ----
+  function loadLocal(){ try{ BOARD=JSON.parse(lsGet(QUIZ_ID))||[]; }catch(e){ BOARD=[]; } if(!Array.isArray(BOARD)) BOARD=[]; }
+  loadLocal();
+
+  // ---- shared store (Supabase REST) ----
+  function sbBase(){ return SB_URL.replace(/\/+$/,'')+'/rest/v1/scores'; }
+  function sbHeaders(extra){ return Object.assign({apikey:SB_KEY, Authorization:'Bearer '+SB_KEY}, extra||{}); }
+  async function sbLoad(){
+    const url=sbBase()
+      +'?select=name,correct,level,time_left'
+      +'&quiz_id=eq.'+encodeURIComponent(QUIZ_ID)
+      +'&group_code=eq.'+encodeURIComponent(groupCode())
+      +'&order=correct.desc,level.desc,time_left.desc&limit=10';
+    const res=await fetch(url,{headers:sbHeaders()});
+    if(!res.ok) throw new Error('load '+res.status);
+    const rows=await res.json();
+    return rows.map(function(r){ return {name:r.name,correct:r.correct,level:r.level,timeLeft:r.time_left}; });
+  }
+  async function sbSave(e){
+    const body=[{quiz_id:QUIZ_ID, group_code:groupCode(), name:e.name, correct:e.correct, level:e.level, time_left:e.timeLeft}];
+    const res=await fetch(sbBase(),{method:'POST',headers:sbHeaders({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)});
+    if(!res.ok) throw new Error('save '+res.status);
+  }
+
+  // ---- render ----
+  function renderRows(rows,hi){
+    const list=$('boardList'); list.innerHTML='';
+    rows.slice(0,10).forEach(function(r,i){
+      const li=document.createElement('li');
+      li.className='brow'+(hi&&r.t===hi?' me':'');
+      li.innerHTML='<span class="brk">'+(i+1)+'</span><span class="bnm">'+escapeHtml(r.name)+'</span>'+
+        '<span class="bsc">'+r.correct+'/20<br><span class="bmeta">L'+r.level+' \u00b7 '+fmt(r.timeLeft)+'</span></span>';
+      list.appendChild(li);
+    });
+  }
+  function setMode(){ const t=$('boardTitle'); if(t) t.textContent = shared()? ('Group \u00b7 '+groupCode()) : 'This device'; }
+  function renderBoard(hi){ renderRows(BOARD,hi); $('boardEmpty').textContent='No scores yet \u2014 be the first!'; $('boardEmpty').classList.toggle('hidden', BOARD.length>0); setMode(); }
+  async function refreshShared(hi){
+    setMode();
+    const list=$('boardList'); $('boardEmpty').classList.add('hidden');
+    list.innerHTML='<li class="bload">Loading\u2026</li>';
+    try{
+      BOARD=await sbLoad(); renderRows(BOARD,hi);
+      $('boardEmpty').textContent='No scores in this group yet \u2014 be the first!';
+      $('boardEmpty').classList.toggle('hidden', BOARD.length>0);
+    }catch(err){
+      list.innerHTML='';
+      $('boardEmpty').textContent='Couldn\u2019t reach the shared board \u2014 check your connection and try again.';
+      $('boardEmpty').classList.remove('hidden');
+    }
+  }
+
+  async function openBoard(showSave){
+    ensureAudio();
+    const sa=$('saveArea');
+    if(showSave && lastRun){
+      sa.classList.remove('hidden');
+      $('saveSummary').textContent=fmtScore(lastRun);
+      const nm=lsGet(NAME_KEY); if(nm) $('boardName').value=nm;
+    } else { sa.classList.add('hidden'); }
+    show('boardScreen');
+    if(shared()){ await refreshShared(); } else { loadLocal(); renderBoard(); }
+  }
+
+  async function saveScore(){
+    if(!lastRun || boardBusy) return;
+    let name=($('boardName').value||'').trim().slice(0,14); if(!name) name='Player';
+    lsSet(NAME_KEY,name);
+    const entry={name:name,correct:lastRun.correct,level:lastRun.level,timeLeft:Math.round(lastRun.timeLeft),t:Date.now()};
+    if(shared()){
+      const btn=$('boardSave'); boardBusy=true; btn.disabled=true; const old=btn.textContent; btn.textContent='Saving\u2026';
+      try{ await sbSave(entry); lastRun=null; $('saveArea').classList.add('hidden'); beep(660,0.08,'sine',0.12); await refreshShared(); }
+      catch(err){ btn.textContent='Try again'; }
+      finally{ boardBusy=false; btn.disabled=false; if(btn.textContent==='Saving\u2026') btn.textContent=old; }
+    } else {
+      BOARD.push(entry); BOARD.sort(cmpRun); BOARD=BOARD.slice(0,10);
+      lsSet(QUIZ_ID, JSON.stringify(BOARD));
+      lastRun=null; $('saveArea').classList.add('hidden');
+      beep(660,0.08,'sine',0.12); renderBoard(entry.t);
+    }
+  }
+
+  // group-code field on the start screen (remembered between visits)
+  (function(){ const gi=$('groupInput'); if(!gi) return; gi.value=lsGet(GROUP_KEY)||'';
+    gi.addEventListener('input',function(){ const v=gi.value.toUpperCase(); if(v!==gi.value) gi.value=v; lsSet(GROUP_KEY,v); }); })();
+
+  $('startBoard').addEventListener('click',function(){openBoard(false);});
+  document.querySelectorAll('.endboard').forEach(function(b){b.addEventListener('click',function(){openBoard(true);});});
+  $('boardSave').addEventListener('click',saveScore);
+  $('boardBack').addEventListener('click',toMenu);
+  $('boardPlay').addEventListener('click',function(){ensureAudio();startGame();});
+  $('boardName').addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();saveScore();} });
+
+  window.__qc_test=function(cmd){
+    switch(cmd){
+      case 'start': startGame(); return true;
+      case 'state': return {level:level,answered:answered,correct:correct,totalWrong:totalWrong,playing:playing};
+      case 'answerCorrect': answer(current.correct); return true;
+      case 'answerWrong': answer(current.wrong[0]); return true;
+    }
+  };
+})();
+</script>
+</body>
+</html>
