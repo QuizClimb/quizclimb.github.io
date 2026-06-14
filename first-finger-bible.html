@@ -6,7 +6,7 @@
 <title>First Finger: Bible — TierBrain</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;700;800&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg0:#16110a; --bg1:#1f1810; --card:#1c1610; --card2:#261d12; --line:#473a28;
@@ -70,6 +70,23 @@
   .toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:8px 18px;font-weight:800;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;}
   .toast.show{opacity:1;}
   .home{color:var(--mut);font-size:12px;font-weight:700;text-decoration:none;}
+
+  /* ===== SCRIPTORIUM SKIN (theme-variable, shared by Bible editions) ===== */
+  :root{
+    --bg0:#140d07; --bg1:#241710; --card:#20160d; --card2:#2b1e12; --line:#5a4126;
+    --ink:#f4e8d0; --mut:#c2aa80; --gold:#e3b24e; --right:#86a85a; --wrong:#c64f33;
+    --accent:#caa24a; --l1:#d8a64a; --l2:#cf7f37; --l3:#c0532f; --l4:#9a5a2a;
+  }
+  body{
+    background:
+      repeating-linear-gradient(0deg, rgba(255,240,210,.018) 0 2px, transparent 2px 4px),
+      radial-gradient(120% 65% at 50% -6%, rgba(227,178,78,.16), transparent 55%),
+      radial-gradient(90% 75% at 50% 122%, rgba(0,0,0,.5), transparent 62%),
+      linear-gradient(160deg,#140d07,#241710) !important;
+  }
+  .display,.timer,#timer,.statline b,.timeBig,.board h3,.brk,.codepill,#countNum,.lvlpill,.qcount{ font-family:'Cinzel',serif !important; }
+  .display{ letter-spacing:.5px; }
+  .screen h1, h1.display{ background:linear-gradient(110deg,#f0d27a,#c98a3a) !important; -webkit-background-clip:text; background-clip:text; color:transparent !important; filter:drop-shadow(0 2px 5px rgba(0,0,0,.5)); }
 </style>
 </head>
 <body>

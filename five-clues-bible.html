@@ -6,7 +6,7 @@
 <title>Five Clues: Bible — TierBrain</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg0:#140a06; --bg1:#2c160e; --card:#241208; --card2:#331b10;
@@ -168,6 +168,27 @@
   .guessRow input:focus{outline:none;border-color:var(--gold);}
   .clueBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
   .clueMsg{min-height:1.2em;text-align:center;font-weight:800;font-size:14px;margin-top:10px;}
+
+  /* ===== SCRIPTORIUM SKIN (theme-variable, shared by Bible editions) ===== */
+  :root{
+    --bg0:#140d07; --bg1:#241710; --card:#20160d; --card2:#2b1e12; --line:#5a4126;
+    --ink:#f4e8d0; --mut:#c2aa80; --gold:#e3b24e; --right:#86a85a; --wrong:#c64f33;
+    --accent:#caa24a; --l1:#d8a64a; --l2:#cf7f37; --l3:#c0532f; --l4:#9a5a2a;
+  }
+  body{
+    background:
+      repeating-linear-gradient(0deg, rgba(255,240,210,.018) 0 2px, transparent 2px 4px),
+      radial-gradient(120% 65% at 50% -6%, rgba(227,178,78,.16), transparent 55%),
+      radial-gradient(90% 75% at 50% 122%, rgba(0,0,0,.5), transparent 62%),
+      linear-gradient(160deg,#140d07,#241710) !important;
+  }
+  .display,.timer,#timer,.statline b,.timeBig,.board h3,.brk,.codepill,#countNum,.lvlpill,.qcount{ font-family:'Cinzel',serif !important; }
+  .display{ letter-spacing:.5px; }
+  .screen h1, h1.display{ background:linear-gradient(110deg,#f0d27a,#c98a3a) !important; -webkit-background-clip:text; background-clip:text; color:transparent !important; filter:drop-shadow(0 2px 5px rgba(0,0,0,.5)); }
+
+  .screen{ background:linear-gradient(160deg, rgba(36,23,16,.97), rgba(20,13,7,.985)) !important; }
+  button.cta{ background:linear-gradient(180deg,#e3b24e,#c98a3a) !important; color:#241405 !important; box-shadow:0 7px 0 #8a5a1e, 0 12px 26px rgba(0,0,0,.4) !important; }
+  button.cta:active{ box-shadow:0 3px 0 #8a5a1e !important; }
 </style>
 </head>
 <body>
