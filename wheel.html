@@ -6,7 +6,7 @@
 <title>Phrase Spinner — TierBrain</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Bungee&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg0:#080d1f; --bg1:#0e1838; --card:#101c40; --card2:#16264f;
@@ -192,6 +192,30 @@
   .kkey:disabled{opacity:.26;cursor:default;}
   .kkey.vowel{color:var(--l4);}
   .kkey.del{color:var(--wrong);}
+
+  /* ===== GAME-SHOW STAGE SKIN (theme-variable layer only) ===== */
+  :root{
+    --bg0:#160a2e; --bg1:#26124f; --card:#1e1340; --card2:#2a1a55; --line:#43306e;
+    --ink:#fff6ec; --mut:#bdaede; --gold:#ffc83d; --right:#3fd07f; --wrong:#ff5d6e;
+    --l1:#3fd07f; --l2:#ffc83d; --l3:#ff7a3d; --l4:#ff5ce0;
+  }
+  body{
+    background:
+      radial-gradient(60% 48% at 50% -8%, rgba(255,200,61,.22), transparent 60%),
+      radial-gradient(45% 50% at 12% 6%, rgba(255,61,166,.16), transparent 60%),
+      radial-gradient(45% 50% at 88% 6%, rgba(54,214,255,.15), transparent 60%),
+      radial-gradient(120% 80% at 50% 122%, rgba(0,0,0,.5), transparent 60%),
+      linear-gradient(160deg,#160a2e,#26124f) !important;
+  }
+  .display{ font-family:'Bungee',sans-serif !important; letter-spacing:.5px; }
+  .screen{ background:linear-gradient(160deg, rgba(38,18,79,.96), rgba(22,10,46,.985)) !important; }
+  .screen h1, h1.display{ background:linear-gradient(110deg,#ffe79a,#ffb01e) !important; -webkit-background-clip:text; background-clip:text; color:transparent !important; filter:drop-shadow(0 0 12px rgba(255,200,61,.45)); }
+  #wofCat{ text-shadow:0 0 10px rgba(255,200,61,.4); }
+  .wofbank{ text-shadow:0 0 14px rgba(255,200,61,.5); }
+  /* prize wheel */
+  .wheel{ border:6px solid #ffc83d !important; box-shadow:0 0 0 3px #7a4b00, 0 0 24px rgba(255,200,61,.5), 0 10px 26px rgba(0,0,0,.55) !important; }
+  .wheelhub{ background:#fff6ec !important; box-shadow:0 0 0 4px #ffc83d, 0 0 12px rgba(255,200,61,.6) !important; }
+  .wheelptr{ border-top-color:#e23b4f !important; filter:drop-shadow(0 2px 3px rgba(0,0,0,.5)) !important; }
 </style>
 </head>
 <body>
@@ -542,8 +566,8 @@
   }
   function buildWheel(){
     const el=$('wofWheel'); if(!el||!el.style) return;
-    const seg=360/WEDGES.length, cols=['#3d7fe8','#36c98a','#f6b73c','#ff6b5d','#ff5ce0','#45e0ff'];
-    const stops=WEDGES.map(function(w,i){ let c; if(w==='BANK')c='#10141f'; else if(w==='LOSE')c='#566080'; else c=cols[i%cols.length]; return c+' '+(i*seg).toFixed(2)+'deg '+((i+1)*seg).toFixed(2)+'deg'; });
+    const seg=360/WEDGES.length, cols=['#e23b4f','#ffc83d','#2f6fe0','#37c98a','#a24be0','#ff7a2d'];
+    const stops=WEDGES.map(function(w,i){ let c; if(w==='BANK')c='#140f28'; else if(w==='LOSE')c='#5b5470'; else c=cols[i%cols.length]; return c+' '+(i*seg).toFixed(2)+'deg '+((i+1)*seg).toFixed(2)+'deg'; });
     el.style.background='conic-gradient('+stops.join(',')+')';
   }
 
