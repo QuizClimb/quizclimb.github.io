@@ -6,7 +6,7 @@
 <title>Snap Sort — TierBrain</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg0:#06120f; --bg1:#0a241c; --card:#0c241d; --card2:#103027;
@@ -169,6 +169,37 @@
   .sortbtn.left{border-color:var(--l1);} .sortbtn.right{border-color:var(--l4);}
   .sortbtn:active{transform:scale(.97);}
   .sortbtn:disabled{opacity:.6;}
+
+  /* ===== NEON ARCADE SKIN (theme-variable layer only) ===== */
+  :root{
+    --bg0:#0a0613; --bg1:#140a22; --card:#160c28; --card2:#1d0f33; --line:#3a2a5a;
+    --ink:#f1e8ff; --mut:#a98fce; --l1:#00e5ff; --l2:#39ff14; --l3:#ffae00; --l4:#ff2d95;
+    --gold:#00e5ff; --right:#39ff14; --wrong:#ff3b6b;
+  }
+  body{
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 80% at 80% -10%, rgba(255,45,149,.22), transparent 55%),
+      radial-gradient(100% 80% at 0% 110%, rgba(0,229,255,.20), transparent 55%),
+      linear-gradient(160deg,#0a0613,#140a22) !important;
+  }
+  .display{ font-family:'Orbitron',sans-serif !important; letter-spacing:1px; }
+  .screen{ background:linear-gradient(160deg, rgba(22,11,38,.97), rgba(10,6,19,.985)) !important; }
+  .screen h1, h1.display{ background:linear-gradient(110deg,#00e5ff,#ff2d95) !important; -webkit-background-clip:text; background-clip:text; color:transparent !important; filter:drop-shadow(0 0 10px rgba(0,229,255,.55)) drop-shadow(0 0 20px rgba(255,45,149,.4)); }
+  .sub{ text-shadow:0 0 10px rgba(0,229,255,.5); }
+  button.cta{ background:linear-gradient(180deg,#00e5ff,#0090d8) !important; color:#04121f !important; box-shadow:0 0 20px rgba(0,229,255,.6), 0 6px 0 #0a5a8a !important; }
+  button.cta:active{ box-shadow:0 0 16px rgba(0,229,255,.6), 0 3px 0 #0a5a8a !important; }
+  button.cta.blue{ background:linear-gradient(180deg,#ff2d95,#c01070) !important; color:#fff !important; box-shadow:0 0 20px rgba(255,45,149,.6), 0 6px 0 #7a0a45 !important; }
+  .progbar{ background:linear-gradient(90deg,#00e5ff,#ff2d95) !important; box-shadow:0 0 12px rgba(0,229,255,.55); }
+  .timer{ text-shadow:0 0 12px rgba(0,229,255,.6); }
+  .ruleLine{ color:#c9a9f5 !important; text-shadow:0 0 10px rgba(255,45,149,.45); }
+  .itemCard{ background:rgba(0,229,255,.05) !important; border:2px solid rgba(0,229,255,.55) !important; box-shadow:inset 0 0 22px rgba(0,229,255,.16), 0 0 20px rgba(255,45,149,.14) !important; }
+  .itemCard.good{ background:rgba(57,255,20,.14) !important; border-color:#39ff14 !important; box-shadow:0 0 28px rgba(57,255,20,.45) !important; }
+  .itemCard.bad{ background:rgba(255,59,107,.14) !important; border-color:#ff3b6b !important; box-shadow:0 0 28px rgba(255,59,107,.45) !important; }
+  #itemLabel{ text-shadow:0 0 16px rgba(0,229,255,.5); }
+  .sortbtn{ background:rgba(255,255,255,.03) !important; }
+  .sortbtn.left{ border-color:#00e5ff !important; color:#bff6ff !important; box-shadow:0 0 18px rgba(0,229,255,.4), inset 0 0 18px rgba(0,229,255,.12) !important; text-shadow:0 0 10px rgba(0,229,255,.6); }
+  .sortbtn.right{ border-color:#ff2d95 !important; color:#ffd0e8 !important; box-shadow:0 0 18px rgba(255,45,149,.4), inset 0 0 18px rgba(255,45,149,.12) !important; text-shadow:0 0 10px rgba(255,45,149,.6); }
 </style>
 </head>
 <body>
